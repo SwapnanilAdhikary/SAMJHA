@@ -1,0 +1,49 @@
+[project]
+name = "samjha"
+version = "0.1.0"
+description = "Voice-native informed consent for Indian retail lending. RBI Key Facts Statement, read aloud in Hindi, with heard-through consent gating."
+requires-python = ">=3.13,<3.14"
+
+dependencies = [
+    # Orchestration. The whole plugin ecosystem is lockstep-versioned; pin exact.
+    # 1.8.0 was published 2026-09-05 (the day this project started) — a mid-build
+    # minor bump on a plugin released hours ago is a real risk.
+    "livekit-agents[deepgram,silero,turn-detector,openai,rime]==1.8.0",
+    "livekit-plugins-sarvam==1.8.0",
+
+    "onnxruntime>=1.29.0",
+    "numpy>=2.5.0",
+    "scipy>=1.18.0",
+    "soundfile>=0.14.0",       # scipy.io.wavfile cannot read WAVE_FORMAT_MULAW
+
+    "pdfplumber>=0.11.10",
+    "pypdf>=6.17.0",
+    "pydantic>=2.13.0",
+    "fastapi>=0.141.0",
+    "uvicorn>=0.52.0",
+
+    # AI4Bharat's Hindi verbaliser. NOT `indic-num2words` (different project,
+    # concatenates unit to number without a space).
+    # NOT `num2words` either: its Hindi lives only on master, never released.
+    "indic-numtowords>=1.1.0",
+
+    "httpx>=0.28.0",
+    "websockets>=15.0",
+    "python-dotenv>=1.0.0",
+]
+
+# ponytail: deliberately excluded, each for a verified reason —
+#   pydub          crashes on import on py3.13+ (audioop removed, PEP 594)
+#   audioop-lts    not needed; ffmpeg does the whole G.711 channel
+#   webrtcvad      no cp313/cp314 wheels; silero is already here
+#   torch          turn-detector runs on onnxruntime + a tokenizer only (~2GB saved)
+#   librosa        pulls numba/llvmlite/sklearn for what scipy.signal does
+#   nemo-text-processing  needs pynini/OpenFst; no macOS-ARM wheels. We lift its
+#                         Hindi gold test data as plain text instead.
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
