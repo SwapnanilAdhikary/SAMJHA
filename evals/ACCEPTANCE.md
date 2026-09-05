@@ -180,4 +180,54 @@ parameters, endpoint, versions), `results/summary.md`, and the human panel sheet
 
 Any change after the first eval run is logged here with date, what changed, and why.
 
-_(none yet)_
+### 2026-09-05, ~22:30 IST — claim narrowed to digit-sequence identifiers
+
+**The day-1 pilot partially refuted the original claim, and this is reported as a result,
+not edited away.** The pivot was pre-staged in the build plan before the test ran.
+
+**What was refuted.** Rime Coda handles Indian digit grouping natively. `₹1,04,596`,
+`104596` and our verbalised form produced *identical* transcripts —
+`एक लाख चार हज़ार पाँच सौ छियानवे रुपये` — with `₹` correctly rendered as रुपये. Percentages
+(`18.5%` → `18.5 प्रतिशत`) and tenures (`36 महीने`) were also correct raw. **For these
+categories the delivery layer adds nothing measurable, and the original claim does not
+hold.** This is consistent with Rime's own guidance that most applications should not
+pre-normalize.
+
+**What survived, and strengthened.** Digit-sequence identifiers are read as Indian-scale
+*quantities*, not sequences. Pilot, n=5 account numbers, exact recovery of the full digit
+string:
+
+| Arm | Exact recovery |
+|---|---|
+| A — raw | **1/5** |
+| B — delivery layer | **5/5** |
+
+Observed raw failure modes: dropped digits (`402011000521` → `4020110521`), lost leading
+zeros (`000512348899` → `95058000000`), and total loss (`1234500067` → nothing recovered;
+one clip the TTS appears to skip entirely — Deepgram heard `आपका खाता number है।`).
+
+**The single raw "success" is a scoring artifact, and this matters.** `9157114007` was
+scored recovered because Sarvam's inverse text normalization reconstructed digits from a
+spoken *quantity* — what was actually said was
+`नौ अरब पंद्रह करोड़ इकहत्तर लाख चौदह हज़ार सात` ("nine billion fifteen crore…"). A borrower
+hearing that cannot verify their account number. **By ASR the raw arm scores 1/5; by human
+comprehension it is plausibly 0/5.** This is precisely the ASR-as-proxy failure that
+SP-MCQA (arXiv:2510.26190) documents, arriving in our own pilot data on day 1 — and it is
+the strongest available argument for why the human panel in §7 is not decoration.
+
+**Changes to the test, effective now:**
+1. Primary claim is scoped to `account_identifier` and any digit-sequence value.
+2. `rupee_amount`, `percentage_apr`, `tenure_months`, `emi_amount` remain in the corpus and
+   are still measured and reported — as the **negative result** they are.
+3. Leading-zero preservation is added as an explicit scored property.
+4. The human panel is now load-bearing rather than confirmatory, for the reason above.
+
+**Unchanged:** conditions, channel, scoring method, corpus size, the §8 limitations.
+
+### 2026-09-05 — `lang`-omitted timestamps tested and rejected
+
+Omitting `lang` does emit word timestamps on a Hindi voice with correct Devanagari tokens,
+but the values are byte-identical across sample rates while audio duration is not, at a
+non-constant ratio (1.223–1.489). They do not describe the delivered stream. The consent
+mechanic therefore uses our own flush-segment boundaries and byte-count duration, as
+designed. Evidence in `evals/results/battery/FINDINGS.md`.
