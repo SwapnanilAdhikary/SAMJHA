@@ -1,0 +1,6352 @@
+{
+  "test2_lang=hi": {
+    "got_timestamps": false,
+    "frames": [
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "done",
+        "contextId": null
+      }
+    ]
+  },
+  "test2_lang omitted": {
+    "got_timestamps": true,
+    "frames": [
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "timestamps",
+        "word_timestamps": {
+          "words": [
+            "आपका",
+            "ब्याज",
+            "दर",
+            "चौदह",
+            "प्रतिशत",
+            "है।"
+          ],
+          "start": [
+            0,
+            0.72212,
+            1.62477,
+            1.98583,
+            2.70795,
+            3.97166
+          ],
+          "end": [
+            0.72212,
+            1.62477,
+            1.98583,
+            2.70795,
+            3.97166,
+            4.51325
+          ]
+        },
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "done",
+        "contextId": null
+      }
+    ]
+  },
+  "1a_devanagari": {
+    "text": "आपका ब्याज दर चौदह प्रतिशत है।",
+    "duration_s": 2.97,
+    "frames": [
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "done",
+        "contextId": null
+      }
+    ]
+  },
+  "1b_romanized": {
+    "text": "Aapka byaj dar chaudah pratishat hai.",
+    "duration_s": 6.25,
+    "frames": [
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "done",
+        "contextId": null
+      }
+    ]
+  },
+  "3a_raw_grouped": {
+    "text": "आपके लोन की कुल राशि ₹1,04,596 है।",
+    "duration_s": 8.57,
+    "frames": [
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "done",
+        "contextId": null
+      }
+    ]
+  },
+  "3b_raw_plain": {
+    "text": "आपके लोन की कुल राशि 104596 है।",
+    "duration_s": 7.21,
+    "frames": [
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "done",
+        "contextId": null
+      }
+    ]
+  },
+  "3c_normalized": {
+    "text": "आपके लोन की कुल राशि एक लाख चार हज़ार पाँच सौ छियानवे रुपए है।",
+    "duration_s": 6.89,
+    "frames": [
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "done",
+        "contextId": null
+      }
+    ]
+  },
+  "4a_bare_run": {
+    "text": "आपका खाता नंबर 9157114007 है।",
+    "duration_s": 7.29,
+    "frames": [
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "done",
+        "contextId": null
+      }
+    ]
+  },
+  "4b_grouped_run": {
+    "text": "आपका खाता नंबर 9,157,114,007 है।",
+    "duration_s": 7.93,
+    "frames": [
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "done",
+        "contextId": null
+      }
+    ]
+  },
+  "4c_normalized": {
+    "text": "आपका खाता नंबर नौ एक पाँच सात एक एक चार शून्य शून्य सात है।",
+    "duration_s": 6.57,
+    "frames": [
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "done",
+        "contextId": null
+      }
+    ]
+  },
+  "5_spell": {
+    "text": "आपका कोड spell(A1B2) है।",
+    "duration_s": 3.77,
+    "frames": [
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "done",
+        "contextId": null
+      }
+    ]
+  },
+  "6a_pct_raw": {
+    "text": "वार्षिक ब्याज दर 18.5% है।",
+    "duration_s": 4.57,
+    "frames": [
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "done",
+        "contextId": null
+      }
+    ]
+  },
+  "6b_pct_norm": {
+    "text": "वार्षिक ब्याज दर अट्ठारह दशमलव पाँच प्रतिशत, यानी साढ़े अट्ठारह प्रतिशत है।",
+    "duration_s": 7.77,
+    "frames": [
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "done",
+        "contextId": null
+      }
+    ]
+  },
+  "6c_tenure_raw": {
+    "text": "अवधि 36 महीने है।",
+    "duration_s": 2.17,
+    "frames": [
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "done",
+        "contextId": null
+      }
+    ]
+  },
+  "6d_tenure_norm": {
+    "text": "अवधि छत्तीस महीने, यानी तीन साल है।",
+    "duration_s": 4.33,
+    "frames": [
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "chunk",
+        "contextId": null
+      },
+      {
+        "type": "done",
+        "contextId": null
+      }
+    ]
+  }
+}
