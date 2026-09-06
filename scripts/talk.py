@@ -59,6 +59,19 @@ def enter_pressed() -> bool:
     return False
 
 
+def drain_stdin() -> None:
+    """Discard buffered input before playback starts.
+
+    Observed in a real run: the ENTER that ends teach-back recording was still sitting in
+    the buffer when the next clause began, so the clause was 'interrupted' at 0.1s and
+    marked PARTIALLY_HEARD without the listener touching anything. A barge-in the user did
+    not perform is worse than a missed one — it puts a false event in the consent record.
+    """
+    while select.select([sys.stdin], [], [], 0)[0]:
+        if not sys.stdin.readline():
+            break
+
+
 def play_interruptible(ulaw: bytes) -> tuple[float, bool]:
     """Play mu-law audio. Return (seconds ACTUALLY played, interrupted).
 
@@ -155,13 +168,26 @@ async def main() -> int:
         say(f"{DIM}{text}{RESET}")
 
         # One flush segment per chunk: the same delivery the eval measures.
-        res = await rime_ws3.synthesize([s.text for s in c.segments],
-                                        key_value_flags=[s.carries_key_value for s in c.segments])
+        try:
+            res = await rime_ws3.synthesize(
+                [s.text for s in c.segments],
+                key_value_flags=[s.carries_key_value for s in c.segments])
+        except Exception as e:
+            # Rime is US-only and the connect occasionally times out from India. A clause we
+            # could not speak was certainly not heard, so record that and move on rather
+            # than ending the call — the FSM already refuses consent on a clause in this
+            # state, which is the correct outcome.
+            say(f"  {RED}could not synthesise this clause: {type(e).__name__}{RESET}")
+            say(f"  {DIM}recording it as undelivered; consent stays blocked on it{RESET}")
+            fsm.begin_delivery(c.id)
+            fsm.delivery_dropped(c.id, note=f"tts_failed:{type(e).__name__}")
+            continue
         for seg, out in zip(c.segments, res.segments):
             seg.audio = bytes(out.audio)
 
         fsm.begin_delivery(c.id)
         say(f"{DIM}speaking… (ENTER to interrupt){RESET}")
+        drain_stdin()
         played, interrupted = play_interruptible(res.audio)
         state = fsm.end_delivery(c.id, played_s=played, interrupted=interrupted)
 

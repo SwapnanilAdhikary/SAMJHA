@@ -108,12 +108,36 @@ def api_key() -> str:
 
 async def synthesize(texts: list[str], *, lang: str | None = LANG,
                      speaker: str = SPEAKER, timeout: float = 60.0,
-                     key_value_flags: list[bool] | None = None) -> Result:
+                     key_value_flags: list[bool] | None = None,
+                     attempts: int = 3) -> Result:
     """Send each text as its own flush segment; return per-segment audio.
 
     One text per flush is the whole design: it makes "did the segment carrying the number
     finish playing?" exact arithmetic rather than an estimate.
+
+    Retries the opening handshake. Rime's endpoint is in the US with no India region, so a
+    trans-Pacific connect occasionally times out — observed live, mid-call, on clause 4 of a
+    real run. A consent call that dies partway through is worse than a slow one, and the
+    caller has no better recovery than trying again.
     """
+    last: Exception | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            return await _synthesize_once(texts, lang=lang, speaker=speaker,
+                                          timeout=timeout, key_value_flags=key_value_flags)
+        except (TimeoutError, OSError, websockets.exceptions.WebSocketException) as e:
+            last = e
+            if attempt < attempts:
+                # Short, escalating backoff. Long enough to ride out a blip, short enough
+                # that a listener on the line does not think the call dropped.
+                await asyncio.sleep(0.5 * attempt)
+    raise RuntimeError(
+        f"Rime /ws3 failed after {attempts} attempts: {type(last).__name__}: {last}"
+    ) from last
+
+
+async def _synthesize_once(texts: list[str], *, lang: str | None, speaker: str,
+                           timeout: float, key_value_flags: list[bool] | None) -> Result:
     flags = key_value_flags or [False] * len(texts)
     segments = [Segment(text=t, carries_key_value=f) for t, f in zip(texts, flags)]
     frames: list[dict] = []
@@ -124,6 +148,9 @@ async def synthesize(texts: list[str], *, lang: str | None = LANG,
         url(lang=lang, speaker=speaker),
         additional_headers={"Authorization": f"Bearer {api_key()}"},
         max_size=None,
+        # 10s: long enough for a slow trans-Pacific connect, short enough that three
+        # attempts still fail inside a window a listener will sit through.
+        open_timeout=10,
     ) as ws:
         for seg in segments:
             await ws.send(json.dumps({"text": seg.text}))
