@@ -303,3 +303,20 @@ def test_websocket_pushes_transitions(client, tmpenv):
 
 def test_provider_dict_is_json_serialisable():
     json.dumps(provider.active())
+
+
+def test_provider_badge_matches_the_code_path():
+    """The badge must state what actually runs, not what we intended.
+
+    livekit-plugins-sarvam 1.8.0 hardcodes REALTIME_MODEL and rejects anything else, so the
+    advertised model is checkable against the plugin itself. This caught a real
+    cross-workstream inconsistency: provider.py advertised saaras:v4-realtime while
+    agent/session.py necessarily ran v3-realtime.
+    """
+    from livekit.plugins.sarvam.stt_streaming import REALTIME_MODEL
+
+    from api import provider
+
+    assert provider._STT["sarvam"]["model"] == REALTIME_MODEL, (
+        "provider badge advertises a Sarvam model the installed plugin will not run"
+    )

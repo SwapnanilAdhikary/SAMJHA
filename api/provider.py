@@ -20,8 +20,14 @@ from delivery import rime_ws3
 # the disclosed fallback and is pinned to `hi`, never `multi` — `multi` has a documented,
 # staff-acknowledged Hindi->Spanish misdetection on Hinglish calls, which on this product
 # would silently destroy teach-back grading.
+# The badge must state what is ACTUALLY running, not what we intended to run. This said
+# `saaras:v4-realtime` until it was checked against the code path: livekit-plugins-sarvam
+# 1.8.0 hardcodes REALTIME_MODEL = "saaras:v3-realtime" (stt_streaming.py:53), exposes no
+# `model` parameter, and raises ValueError on any other value. agent/session.py therefore
+# runs v3-realtime. A badge claiming v4 would have misreported the active provider to
+# anyone reading the screen.
 _STT = {
-    "sarvam": {"vendor": "Sarvam", "model": "saaras:v4-realtime", "language": "hi-IN",
+    "sarvam": {"vendor": "Sarvam", "model": "saaras:v3-realtime", "language": "hi-IN",
                "mode": "codemix", "endpointing": "vad"},
     "deepgram": {"vendor": "Deepgram", "model": "nova-3", "language": "hi",
                  "mode": "-", "endpointing": "-"},
