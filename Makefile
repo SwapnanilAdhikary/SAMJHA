@@ -1,4 +1,4 @@
-.PHONY: help setup preflight battery test eval demo-fixtures secrets
+.PHONY: help setup preflight battery test eval demo-fixtures secrets talk
 
 help:
 	@grep -E '^[a-z-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "};{printf "  \033[36m%-14s\033[0m %s\n",$$1,$$2}'
@@ -33,3 +33,6 @@ secrets: ## Fail if a credential ever touched git history
 demo-fixtures: ## Scripted stress cases, no network: barge-in leaves PARTIALLY_HEARD, rushed consent refused
 	uv run python -m agent.consent_fsm
 	uv run python -m agent.rushed_consent
+
+talk: ## BE THE BORROWER — a real call: Rime speaks, you answer, consent is decided
+	@set -a; . ./.env; set +a; uv run python scripts/talk.py $(ARGS)
