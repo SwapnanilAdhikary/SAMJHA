@@ -1,0 +1,43 @@
+{
+  "proposal_no": "PL/2026/117884",
+  "loan_type": "Personal Loan",
+  "sanctioned_amount_inr": "25000",
+  "disbursal_mode": "upfront",
+  "loan_term_months": 12,
+  "instalments": {
+    "type_of_instalments": "Monthly",
+    "number_of_epis": 12,
+    "epi_amount_inr": "2364",
+    "repayment_commencement": "30 days from disbursal"
+  },
+  "interest": {
+    "pct": "24.00",
+    "kind": "fixed"
+  },
+  "floating": null,
+  "fees": [
+    {
+      "item": "Processing fee",
+      "payable_to": "RE",
+      "timing": "one_time",
+      "amount_inr": "885",
+      "percentage": null,
+      "net_of_gst": false
+    },
+    {
+      "item": "Late payment charges",
+      "payable_to": "RE",
+      "timing": "recurring",
+      "amount_inr": null,
+      "percentage": "2.00",
+      "net_of_gst": false
+    }
+  ],
+  "apr_pct": "31.10",
+  "total_repayment_inr": "29253",
+  "cooling_off_period_days": 3,
+  "recovery_agent_clause": "Recovery agents are engaged only from the panel published on the lender's website, and may contact the borrower between 8 AM and 7 PM.",
+  "grievance_officer_name": "Kavita Joshi",
+  "grievance_officer_phone": "1800 288 5140",
+  "loan_account_no": "7391028465"
+}

@@ -1,0 +1,51 @@
+{
+  "proposal_no": "TW/2026/000933",
+  "loan_type": "Two-Wheeler Loan",
+  "sanctioned_amount_inr": "104596",
+  "disbursal_mode": "upfront",
+  "loan_term_months": 36,
+  "instalments": {
+    "type_of_instalments": "Monthly",
+    "number_of_epis": 36,
+    "epi_amount_inr": "3927",
+    "repayment_commencement": "30 days from disbursal"
+  },
+  "interest": {
+    "pct": "20.75",
+    "kind": "fixed"
+  },
+  "floating": null,
+  "fees": [
+    {
+      "item": "Processing fee",
+      "payable_to": "RE",
+      "timing": "one_time",
+      "amount_inr": "2620",
+      "percentage": null,
+      "net_of_gst": false
+    },
+    {
+      "item": "RTO / hypothecation charges",
+      "payable_to": "third_party",
+      "timing": "one_time",
+      "amount_inr": "1800",
+      "percentage": null,
+      "net_of_gst": false
+    },
+    {
+      "item": "Vehicle insurance premium",
+      "payable_to": "third_party",
+      "timing": "one_time",
+      "amount_inr": "4150",
+      "percentage": null,
+      "net_of_gst": false
+    }
+  ],
+  "apr_pct": "27.13",
+  "total_repayment_inr": "149942",
+  "cooling_off_period_days": 3,
+  "recovery_agent_clause": "Recovery agents are engaged only from the panel published on the lender's website, and may contact the borrower between 8 AM and 7 PM.",
+  "grievance_officer_name": "Sunita Rathore",
+  "grievance_officer_phone": "1800 200 4455",
+  "loan_account_no": "0100234567891234"
+}

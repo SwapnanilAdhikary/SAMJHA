@@ -22,6 +22,14 @@ eval: preflight ## Full A/B, one command. Reproduces every number in the README.
 	uv run python evals/run_eval.py
 
 secrets: ## Fail if a credential ever touched git history
-	@! git log -p --all | grep -inE '(rime|sarvam|deepgram)[_-]?api[_-]?key\s*[=:]\s*\S|sk-[a-zA-Z0-9]{16,}' \
-	  || (echo "SECRET FOUND IN HISTORY — rotate it, do not just amend"; exit 1)
+	@# Requires 16+ key-like chars after the '=', so documentation and placeholders
+	@# (RIME_API_KEY=..., =<your-key>, =) do not trip it. A scan that cries wolf is a
+	@# scan people stop reading.
+	@! git log -p --all \
+	  | grep -inE "(rime|sarvam|deepgram|livekit|openrouter)[_-]?api[_-]?(key|secret)[\"']?[[:space:]]*[=:][[:space:]]*[\"']?[A-Za-z0-9_-]{16,}|sk-[a-zA-Z0-9]{16,}" \
+	  || (echo "SECRET FOUND IN HISTORY — rotate the key, do not just amend the commit"; exit 1)
 	@echo "no credentials in history"
+
+demo-fixtures: ## Scripted stress cases, no network: barge-in leaves PARTIALLY_HEARD, rushed consent refused
+	uv run python -m agent.consent_fsm
+	uv run python -m agent.rushed_consent

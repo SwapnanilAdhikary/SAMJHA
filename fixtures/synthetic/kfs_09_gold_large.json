@@ -1,0 +1,43 @@
+{
+  "proposal_no": "GL/2026/305901",
+  "loan_type": "Gold Loan",
+  "sanctioned_amount_inr": "225000",
+  "disbursal_mode": "upfront",
+  "loan_term_months": 24,
+  "instalments": {
+    "type_of_instalments": "Monthly",
+    "number_of_epis": 24,
+    "epi_amount_inr": "10829",
+    "repayment_commencement": "30 days from disbursal"
+  },
+  "interest": {
+    "pct": "14.25",
+    "kind": "fixed"
+  },
+  "floating": null,
+  "fees": [
+    {
+      "item": "Processing fee",
+      "payable_to": "RE",
+      "timing": "one_time",
+      "amount_inr": "1125",
+      "percentage": null,
+      "net_of_gst": false
+    },
+    {
+      "item": "Gold valuation charges",
+      "payable_to": "third_party",
+      "timing": "one_time",
+      "amount_inr": "700",
+      "percentage": null,
+      "net_of_gst": false
+    }
+  ],
+  "apr_pct": "15.08",
+  "total_repayment_inr": "261721",
+  "cooling_off_period_days": 0,
+  "recovery_agent_clause": "Recovery agents are engaged only from the panel published on the lender's website, and may contact the borrower between 8 AM and 7 PM.",
+  "grievance_officer_name": "Rajesh Pillai",
+  "grievance_officer_phone": "1800 266 1190",
+  "loan_account_no": "0000123456789"
+}

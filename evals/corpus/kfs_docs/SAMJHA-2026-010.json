@@ -1,0 +1,43 @@
+{
+  "proposal_no": "SAMJHA-2026-010",
+  "loan_type": "व्यक्तिगत ऋण",
+  "sanctioned_amount_inr": "640000",
+  "disbursal_mode": "upfront",
+  "loan_term_months": 30,
+  "instalments": {
+    "type_of_instalments": "Monthly",
+    "number_of_epis": 30,
+    "epi_amount_inr": "25224",
+    "repayment_commencement": "वितरण से 30 दिन बाद"
+  },
+  "interest": {
+    "pct": "13.4",
+    "kind": "fixed"
+  },
+  "floating": null,
+  "fees": [
+    {
+      "item": "प्रोसेसिंग शुल्क",
+      "payable_to": "RE",
+      "timing": "one_time",
+      "amount_inr": "9600",
+      "percentage": null,
+      "net_of_gst": true
+    },
+    {
+      "item": "बीमा प्रीमियम",
+      "payable_to": "third_party",
+      "timing": "one_time",
+      "amount_inr": "5120",
+      "percentage": null,
+      "net_of_gst": false
+    }
+  ],
+  "apr_pct": "15.34",
+  "total_repayment_inr": "756720",
+  "cooling_off_period_days": 3,
+  "recovery_agent_clause": "",
+  "grievance_officer_name": "श्रीमती अनीता शर्मा",
+  "grievance_officer_phone": "1800 200 3011",
+  "loan_account_no": "0450078123"
+}

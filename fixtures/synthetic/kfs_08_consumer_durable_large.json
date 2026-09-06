@@ -1,0 +1,51 @@
+{
+  "proposal_no": "CD/2026/885417",
+  "loan_type": "Consumer Durable Loan",
+  "sanctioned_amount_inr": "68500",
+  "disbursal_mode": "upfront",
+  "loan_term_months": 18,
+  "instalments": {
+    "type_of_instalments": "Monthly",
+    "number_of_epis": 18,
+    "epi_amount_inr": "4586",
+    "repayment_commencement": "30 days from disbursal"
+  },
+  "interest": {
+    "pct": "24.50",
+    "kind": "fixed"
+  },
+  "floating": null,
+  "fees": [
+    {
+      "item": "Processing fee",
+      "payable_to": "RE",
+      "timing": "one_time",
+      "amount_inr": "2360",
+      "percentage": null,
+      "net_of_gst": true
+    },
+    {
+      "item": "Extended warranty premium",
+      "payable_to": "third_party",
+      "timing": "one_time",
+      "amount_inr": "2100",
+      "percentage": null,
+      "net_of_gst": false
+    },
+    {
+      "item": "Cheque bounce charges",
+      "payable_to": "RE",
+      "timing": "recurring",
+      "amount_inr": "590",
+      "percentage": null,
+      "net_of_gst": false
+    }
+  ],
+  "apr_pct": "33.85",
+  "total_repayment_inr": "88188",
+  "cooling_off_period_days": 3,
+  "recovery_agent_clause": "Recovery agents are engaged only from the panel published on the lender's website, and may contact the borrower between 8 AM and 7 PM.",
+  "grievance_officer_name": "Meera Nair",
+  "grievance_officer_phone": "1800 233 7788",
+  "loan_account_no": "58210037461902"
+}

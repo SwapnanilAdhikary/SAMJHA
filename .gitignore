@@ -7,3 +7,6 @@ evals/results/clips/**/*.wav
 evals/corpus/noise/
 *.egg-info/
 .DS_Store
+events/
+data/
+*.db

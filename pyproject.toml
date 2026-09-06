@@ -42,7 +42,10 @@ dependencies = [
 #                         Hindi gold test data as plain text instead.
 
 [dependency-groups]
-dev = ["pytest>=8.0"]
+dev = [
+    "pytest>=8.0",
+    "reportlab>=5.0.1",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

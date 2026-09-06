@@ -1,0 +1,248 @@
+{
+  "seed": 20260906,
+  "n": 30,
+  "authors_excluded": true,
+  "note": "NOT FOR LISTENERS. Reveals the condition.",
+  "clips": [
+    {
+      "clip": "clip_01.wav",
+      "item_id": "account_identifier_10",
+      "arm": "baseline",
+      "type": "account_identifier",
+      "value": "912300045601",
+      "text_sent": "आपका खाता नंबर 912300045601 है।"
+    },
+    {
+      "clip": "clip_02.wav",
+      "item_id": "emi_amount_04",
+      "arm": "samjha",
+      "type": "emi_amount",
+      "value": 1600,
+      "text_sent": "प्रति माह एक हज़ार छः सौ रुपए की किश्त कटेगी।"
+    },
+    {
+      "clip": "clip_03.wav",
+      "item_id": "tenure_months_07",
+      "arm": "baseline",
+      "type": "tenure_months",
+      "value": 18,
+      "text_sent": "लोन 18 महीने के लिए स्वीकृत है।"
+    },
+    {
+      "clip": "clip_04.wav",
+      "item_id": "emi_amount_20",
+      "arm": "baseline",
+      "type": "emi_amount",
+      "value": 9600,
+      "text_sent": "मासिक भुगतान ₹9,600 रहेगा।"
+    },
+    {
+      "clip": "clip_05.wav",
+      "item_id": "account_identifier_09",
+      "arm": "baseline",
+      "type": "account_identifier",
+      "value": "50100247865321",
+      "text_sent": "यह ऋण खाता संख्या 50100247865321 पर दर्ज है।"
+    },
+    {
+      "clip": "clip_06.wav",
+      "item_id": "percentage_apr_02",
+      "arm": "samjha",
+      "type": "percentage_apr",
+      "value": "18.5",
+      "text_sent": "सालाना प्रतिशत दर यानी एपीआर अट्ठारह दशमलव पाँच प्रतिशत, यानी साढ़े अट्ठारह प्रतिशत है।"
+    },
+    {
+      "clip": "clip_07.wav",
+      "item_id": "date_deadline_19",
+      "arm": "samjha",
+      "type": "date_deadline",
+      "value": "2026-11-18",
+      "text_sent": "आपकी आख़िरी किश्त अट्ठारह नवंबर दो हज़ार छब्बीस को होगी।"
+    },
+    {
+      "clip": "clip_08.wav",
+      "item_id": "account_identifier_08",
+      "arm": "samjha",
+      "type": "account_identifier",
+      "value": "0100200300",
+      "text_sent": "आपके लोन खाते की संख्या शून्य एक शून्य शून्य दो शून्य शून्य तीन शून्य शून्य है।"
+    },
+    {
+      "clip": "clip_09.wav",
+      "item_id": "emi_amount_15",
+      "arm": "baseline",
+      "type": "emi_amount",
+      "value": 19525,
+      "text_sent": "मासिक किश्त ₹19,525 बनती है।"
+    },
+    {
+      "clip": "clip_10.wav",
+      "item_id": "tenure_months_06",
+      "arm": "samjha",
+      "type": "tenure_months",
+      "value": 21,
+      "text_sent": "यह ऋण इक्कीस महीने की अवधि का है।"
+    },
+    {
+      "clip": "clip_11.wav",
+      "item_id": "date_deadline_06",
+      "arm": "baseline",
+      "type": "date_deadline",
+      "value": "2031-01-20",
+      "text_sent": "आपकी आख़िरी किश्त 20 जनवरी 2031 को होगी।"
+    },
+    {
+      "clip": "clip_12.wav",
+      "item_id": "percentage_apr_08",
+      "arm": "baseline",
+      "type": "percentage_apr",
+      "value": "22.5",
+      "text_sent": "आपके लोन की वार्षिक ब्याज दर 22.5% है।"
+    },
+    {
+      "clip": "clip_13.wav",
+      "item_id": "rupee_amount_10",
+      "arm": "baseline",
+      "type": "rupee_amount",
+      "value": 1721496,
+      "text_sent": "आपके खाते में ₹17,21,496 जमा किए जाएँगे।"
+    },
+    {
+      "clip": "clip_14.wav",
+      "item_id": "account_identifier_01",
+      "arm": "samjha",
+      "type": "account_identifier",
+      "value": "000512348899",
+      "text_sent": "आपके लोन खाते की संख्या शून्य शून्य शून्य पाँच एक दो तीन चार आठ आठ नौ नौ है।"
+    },
+    {
+      "clip": "clip_15.wav",
+      "item_id": "emi_amount_09",
+      "arm": "samjha",
+      "type": "emi_amount",
+      "value": 20494,
+      "text_sent": "आपको हर महीने बीस हज़ार चार सौ चौरानवे रुपए जमा करने होंगे।"
+    },
+    {
+      "clip": "clip_16.wav",
+      "item_id": "emi_amount_03",
+      "arm": "baseline",
+      "type": "emi_amount",
+      "value": 3841,
+      "text_sent": "आपकी ईएमआई ₹3,841 है।"
+    },
+    {
+      "clip": "clip_17.wav",
+      "item_id": "account_identifier_13",
+      "arm": "samjha",
+      "type": "account_identifier",
+      "value": "1234500067",
+      "text_sent": "खाता संख्या एक दो तीन चार पाँच शून्य शून्य शून्य छः सात की पुष्टि कीजिए।"
+    },
+    {
+      "clip": "clip_18.wav",
+      "item_id": "percentage_apr_12",
+      "arm": "baseline",
+      "type": "percentage_apr",
+      "value": "24",
+      "text_sent": "ब्याज की दर 24% निर्धारित की गई है।"
+    },
+    {
+      "clip": "clip_19.wav",
+      "item_id": "tenure_months_04",
+      "arm": "baseline",
+      "type": "tenure_months",
+      "value": 15,
+      "text_sent": "आप 15 महीने तक किश्तें भरेंगे।"
+    },
+    {
+      "clip": "clip_20.wav",
+      "item_id": "date_deadline_09",
+      "arm": "samjha",
+      "type": "date_deadline",
+      "value": "2026-03-28",
+      "text_sent": "यह लोन अट्ठाईस मार्च दो हज़ार छब्बीस तक चुकाना ज़रूरी है।"
+    },
+    {
+      "clip": "clip_21.wav",
+      "item_id": "date_deadline_11",
+      "arm": "baseline",
+      "type": "date_deadline",
+      "value": "2026-08-10",
+      "text_sent": "10 अगस्त 2026 तक आपको भुगतान करना होगा।"
+    },
+    {
+      "clip": "clip_22.wav",
+      "item_id": "date_deadline_13",
+      "arm": "samjha",
+      "type": "date_deadline",
+      "value": "2026-06-12",
+      "text_sent": "देय तिथि बारह जून दो हज़ार छब्बीस निर्धारित है।"
+    },
+    {
+      "clip": "clip_23.wav",
+      "item_id": "date_deadline_12",
+      "arm": "baseline",
+      "type": "date_deadline",
+      "value": "2027-07-10",
+      "text_sent": "समझौते की तारीख़ 10 जुलाई 2027 है।"
+    },
+    {
+      "clip": "clip_24.wav",
+      "item_id": "percentage_apr_07",
+      "arm": "samjha",
+      "type": "percentage_apr",
+      "value": "25.27",
+      "text_sent": "ब्याज दर पच्चीस दशमलव दो सात प्रतिशत प्रति वर्ष है।"
+    },
+    {
+      "clip": "clip_25.wav",
+      "item_id": "rupee_amount_08",
+      "arm": "samjha",
+      "type": "rupee_amount",
+      "value": 53442,
+      "text_sent": "आपके लोन की कुल स्वीकृत राशि तिरेपन हज़ार चार सौ बयालीस रुपए है।"
+    },
+    {
+      "clip": "clip_26.wav",
+      "item_id": "rupee_amount_02",
+      "arm": "samjha",
+      "type": "rupee_amount",
+      "value": 163800,
+      "text_sent": "बैंक ने आपको एक लाख तिरेसठ हज़ार आठ सौ रुपए का ऋण मंज़ूर किया है।"
+    },
+    {
+      "clip": "clip_27.wav",
+      "item_id": "tenure_months_12",
+      "arm": "samjha",
+      "type": "tenure_months",
+      "value": 54,
+      "text_sent": "किश्तों की अवधि चौवन महीने है।"
+    },
+    {
+      "clip": "clip_28.wav",
+      "item_id": "account_identifier_17",
+      "arm": "baseline",
+      "type": "account_identifier",
+      "value": "8890120034",
+      "text_sent": "भुगतान इसी खाता संख्या 8890120034 में करना है।"
+    },
+    {
+      "clip": "clip_29.wav",
+      "item_id": "rupee_amount_12",
+      "arm": "baseline",
+      "type": "rupee_amount",
+      "value": 68088,
+      "text_sent": "आपको कुल ₹68,088 वापस करने होंगे।"
+    },
+    {
+      "clip": "clip_30.wav",
+      "item_id": "emi_amount_13",
+      "arm": "samjha",
+      "type": "emi_amount",
+      "value": 7829,
+      "text_sent": "मासिक भुगतान सात हज़ार आठ सौ उनतीस रुपए रहेगा।"
+    }
+  ]
+}

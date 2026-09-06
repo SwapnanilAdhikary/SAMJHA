@@ -1,0 +1,61 @@
+{
+  "run_id": "20260906T131218Z",
+  "generated_utc": "2026-09-06T13:12:18.183227+00:00",
+  "rime_request": {
+    "modelId": "coda",
+    "speaker": "taru",
+    "lang": "hi",
+    "samplingRate": 8000,
+    "audioFormat": "mulaw",
+    "segment": "never",
+    "timeScaleFactor": 1.0,
+    "endpoint": "wss://users-ws.rime.ai/ws3"
+  },
+  "endpoint_host": "users-ws.rime.ai",
+  "endpoint_ip": "54.70.13.118",
+  "endpoint_region_note": "Rime has no India region; US West/East only. Trans-Pacific RTT is reported separately by evals/latency.py.",
+  "arms": {
+    "baseline": "carrier_a (KFS as written)",
+    "samjha": "carrier_b (delivery-layer verbalisation)"
+  },
+  "chunking": "one flush segment per carrier sentence, IDENTICAL in both arms (ACCEPTANCE.md §4 held-constant reading; see run_eval.py header)",
+  "channel": {
+    "sample_rate": 8000,
+    "band_hz": [
+      300,
+      3400
+    ],
+    "noise_before_codec": true,
+    "noise_file": null,
+    "snr_db": null,
+    "snr_method": "whole-file RMS via ffmpeg volumedetect, NOT ITU-T P.56 active speech level (disclosed in ACCEPTANCE.md §5)"
+  },
+  "scorers": {
+    "sarvam": {
+      "model": "saaras:v4 (fallback saaras:v3)",
+      "language_code": "hi-IN",
+      "modes": [
+        "transcribe",
+        "verbatim"
+      ]
+    },
+    "deepgram": {
+      "model": "nova-3",
+      "language": "hi"
+    }
+  },
+  "full_run": true,
+  "n_utterances": 120,
+  "cached_clips": 240,
+  "fresh_clips": 0,
+  "versions": {
+    "websockets": "15.0.1",
+    "httpx": "0.28.1",
+    "indic-numtowords": "1.1.0",
+    "soundfile": "0.14.0",
+    "numpy": "2.5.2",
+    "pydantic": "2.13.5"
+  },
+  "python": "3.13.12",
+  "ffmpeg": "ffmpeg version 8.1 Copyright (c) 2000-2026 the FFmpeg developers"
+}

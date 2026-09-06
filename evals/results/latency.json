@@ -1,0 +1,74 @@
+{
+  "host": "users-ws.rime.ai",
+  "endpoint_ip": "54.70.13.118",
+  "trials": 5,
+  "request": {
+    "modelId": "coda",
+    "speaker": "taru",
+    "lang": "hi",
+    "samplingRate": 8000,
+    "audioFormat": "mulaw"
+  },
+  "network": {
+    "tcp_rtt_ms_p50": 375.9,
+    "samples": [
+      375.9,
+      364.7,
+      373.9,
+      524.5,
+      861.4
+    ],
+    "note": "Rime has no India region. This is the geographic floor, not model time."
+  },
+  "ttfb_cold_ms": {
+    "p50": 1825.5,
+    "p95": 2289.6,
+    "samples": [
+      1787.3,
+      1891.7,
+      1705.9,
+      2289.6,
+      1825.5
+    ],
+    "note": "includes TLS + WebSocket handshake"
+  },
+  "ttfb_warm_ms": {
+    "p50": 503.8,
+    "p95": 512.4,
+    "samples": [
+      503.8,
+      508.1,
+      512.4,
+      503.1,
+      455.1
+    ],
+    "note": "flush on an already-open socket \u2014 the product's path"
+  },
+  "connect_ms_p50": 1335.6,
+  "model_ms_p50_estimate": 127.9,
+  "model_ms_note": "warm TTFB minus one TCP RTT. An estimate of the non-network component, reported separately so geography is not sold as model speed. Rime's published 96 ms P50 is a self-hosted H100 number.",
+  "bargein_stop_ms": {
+    "p50": 0.6,
+    "p95": 0.7,
+    "samples": [
+      0.5,
+      0.7,
+      0.6,
+      0.7,
+      0.6
+    ],
+    "method": "send clear, then CLOSE the socket. `clear` does not cancel in-flight synthesis and contextId is not a fence, so closing is the only hard stop.",
+    "b64_bytes_received_before_cut": [
+      11704,
+      9992,
+      7424,
+      14272,
+      13588
+    ]
+  },
+  "clear_does_not_cancel": {
+    "chunks_before_clear": 27,
+    "chunks_after_clear": 104,
+    "listen_window_s": 1.5
+  }
+}

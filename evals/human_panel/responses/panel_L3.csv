@@ -1,0 +1,39 @@
+# blind listening sheet — SAMJHA. Project authors must not fill this in.
+"# Listen to each clip ONCE, at normal volume, over headphones or a phone speaker."
+"# Write down the NUMBER you heard, exactly as you heard it. Digits or Hindi words —"
+"#   whichever is closer to what was said. If you did not catch it, leave it blank."
+# Do not replay a clip. Do not guess from context. A blank is a real answer.
+"# confidence: 1 = not sure at all, 5 = certain."
+# 
+# सुनिए और जो संख्या सुनाई दी वही लिखिए। अगर समझ न आए तो खाली छोड़ दीजिए।
+listener_id,clip,heard_value,confidence_1_5
+L3,clip_01.wav,,
+L3,clip_02.wav,,
+L3,clip_03.wav,,
+L3,clip_04.wav,,
+L3,clip_05.wav,,
+L3,clip_06.wav,,
+L3,clip_07.wav,,
+L3,clip_08.wav,,
+L3,clip_09.wav,,
+L3,clip_10.wav,,
+L3,clip_11.wav,,
+L3,clip_12.wav,,
+L3,clip_13.wav,,
+L3,clip_14.wav,,
+L3,clip_15.wav,,
+L3,clip_16.wav,,
+L3,clip_17.wav,,
+L3,clip_18.wav,,
+L3,clip_19.wav,,
+L3,clip_20.wav,,
+L3,clip_21.wav,,
+L3,clip_22.wav,,
+L3,clip_23.wav,,
+L3,clip_24.wav,,
+L3,clip_25.wav,,
+L3,clip_26.wav,,
+L3,clip_27.wav,,
+L3,clip_28.wav,,
+L3,clip_29.wav,,
+L3,clip_30.wav,,

@@ -1,0 +1,588 @@
+<!doctype html>
+<!--
+  SAMJHA live panel — one self-contained page, vanilla JS, no build step.
+
+  Designed for a COMPRESSED SCREEN RECORDING, not for a desk. That drives every visual
+  decision here: large type, solid blocks of colour rather than thin outlines, state
+  changes announced as text ("UNHEARD -> PARTIALLY_HEARD") as well as colour, and
+  animations at ~1.4 s so a viewer can actually read the change happen. If the state
+  machine is not legible on video, the barge-in beat looks like nothing happened.
+
+  PARTIALLY_HEARD is the money shot and is deliberately the loudest thing on screen:
+  amber wash, animated stripes, a hatched "not played" region on the heard-through bar,
+  and a CONSENT BLOCKED badge.
+
+  Devanagari: a system font stack with explicit Devanagari faces first. No webfont — a
+  demo must not depend on fonts.googleapis.com being reachable.
+
+  Served by api/main.py at both / and /record/{id}; this file routes on the pathname.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SAMJHA — informed consent panel</title>
+<style>
+:root{
+  --paper:#f4f3ef; --card:#ffffff; --ink:#14161a; --dim:#5a6069; --rule:#d9d6cf;
+  --unheard:#6b7280; --partial:#c2410c; --heard:#1d4ed8; --fail:#b91c1c; --understood:#15803d;
+  --unheard-bg:#f3f4f6; --partial-bg:#fff5eb; --heard-bg:#eff5ff; --fail-bg:#fef4f4; --understood-bg:#f0fdf4;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Noto Sans Devanagari","Kohinoor Devanagari","Nirmala UI","Mangal",
+              -apple-system,"Segoe UI",system-ui,sans-serif;
+  font-size:15px; line-height:1.45;
+}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+a{color:#1d4ed8}
+
+/* ------------------------------------------------------------------ header */
+header{
+  position:sticky; top:0; z-index:10; background:#14161a; color:#fff;
+  border-bottom:4px solid #000; padding:10px 20px;
+}
+.top{display:flex; flex-wrap:wrap; gap:16px; align-items:center; justify-content:space-between}
+.brand{font-size:26px; font-weight:800; letter-spacing:.16em}
+.brand small{display:block; font-size:11px; font-weight:500; letter-spacing:.06em; color:#a7adb8}
+
+/* (b) ACTIVE PROVIDER BADGE — always visible. */
+.badges{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+.badge{
+  display:flex; align-items:center; gap:8px; background:#22262e; border:1px solid #3a404b;
+  border-radius:3px; padding:6px 11px; font-size:14px; font-weight:600; letter-spacing:.02em;
+}
+.badge b{color:#8fb6ff; font-size:10px; letter-spacing:.12em; text-transform:uppercase}
+.badge .v{color:#fff}
+.badge .hot{color:#ffd479}
+.dot{width:9px; height:9px; border-radius:50%; background:#38bd6f; animation:pulse 2s infinite}
+.dot.off{background:#6b7280; animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.disclose{margin-top:7px; font-size:11.5px; color:#9aa2ae; letter-spacing:.01em}
+
+/* -------------------------------------------------------------------- shell */
+main{max-width:1500px; margin:0 auto; padding:18px 20px 40px; display:grid;
+     grid-template-columns:minmax(0,1.65fr) minmax(340px,1fr); gap:18px}
+@media(max-width:1080px){main{grid-template-columns:1fr}}
+/* /record/{id}: there is no live panel, so the record gets the whole page. */
+body.recordview main{grid-template-columns:minmax(0,1fr); max-width:1080px}
+body.recordview main>div:first-child{display:none}
+h2{font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim);
+   margin:0 0 9px; font-weight:700}
+.panel{background:var(--card); border:1px solid var(--rule); border-radius:4px; padding:14px}
+
+/* --------------------------------------------- (a) LIVE CLAUSE STATE */
+.clause{
+  position:relative; overflow:hidden; background:var(--card);
+  border:1px solid var(--rule); border-left:9px solid var(--unheard);
+  border-radius:4px; padding:13px 16px; margin-bottom:11px;
+  display:grid; grid-template-columns:38px minmax(0,1fr) 232px; gap:14px; align-items:start;
+  transition:border-color .5s ease, background-color .5s ease;
+}
+.clause .ord{font-size:26px; font-weight:800; color:#c3c7ce; text-align:center; line-height:1.2}
+.title{font-size:25px; font-weight:700; line-height:1.3}
+.title-en{font-size:12.5px; color:var(--dim); letter-spacing:.03em; margin-bottom:9px}
+
+/* State chip: the single biggest element per row. */
+.chip{
+  display:block; text-align:center; padding:9px 6px; border-radius:3px; color:#fff;
+  font-size:17px; font-weight:800; letter-spacing:.07em; background:var(--unheard);
+}
+.chip .hi{display:block; font-size:12px; font-weight:600; letter-spacing:.02em; opacity:.92}
+.blocked{
+  margin-top:7px; text-align:center; font-size:12px; font-weight:800; letter-spacing:.09em;
+  color:#7c2d12; background:#fed7aa; border:1px solid #fb923c; border-radius:3px;
+  padding:5px; display:none; animation:blink 1.4s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.45}}
+
+/* heard-through bar. The hatched tail is audio that was NEVER PLAYED.
+   The readout sits OUTSIDE the bar: on top of it the segment ticks cut through the
+   digits and both became unreadable at video bitrates. */
+.barrow{display:flex; align-items:center; gap:11px; margin-top:16px}
+.bar{position:relative; flex:1; height:22px; border:1px solid var(--rule); border-radius:2px;
+     background:repeating-linear-gradient(135deg,#eceae5 0 7px,#e2dfd8 7px 14px)}
+.bar i{display:block; height:100%; width:0; background:var(--unheard);
+       transition:width .75s cubic-bezier(.3,.7,.3,1), background-color .5s ease}
+.readout{font-size:13.5px; font-weight:700; color:#2c3038; white-space:nowrap;
+         min-width:158px; text-align:right}
+.tick{position:absolute; top:-3px; bottom:-3px; width:3px; background:#111; opacity:.85}
+.tick.miss{background:#dc2626; width:4px}
+.cut{position:absolute; top:-13px; bottom:-3px; width:3px; background:#dc2626}
+.cut::after{content:"CUT"; position:absolute; top:-13px; left:-10px; font-size:10px;
+            font-weight:800; color:#dc2626; letter-spacing:.09em}
+
+/* which key values were actually heard */
+.kvs{display:flex; flex-wrap:wrap; gap:7px; margin-top:9px}
+.kv{border:1px solid var(--rule); border-radius:3px; padding:5px 9px; font-size:13px;
+    background:#fafaf8; display:flex; gap:8px; align-items:baseline}
+.kv .mark{font-weight:800; font-size:15px}
+.kv .lbl{font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:var(--dim)}
+.kv .val{font-weight:700; font-size:15px}
+.kv .spoken{color:var(--dim); font-size:12.5px}
+.kv.yes{border-color:#86efac; background:#f0fdf4}
+.kv.yes .mark{color:var(--understood)}
+.kv.no{border-color:#fca5a5; background:#fef2f2}
+.kv.no .mark{color:var(--fail)}
+.kv.no .val{text-decoration:line-through; text-decoration-color:#dc2626}
+
+.reason{margin-top:8px; font-size:13px; color:#3d434c}
+.trace{margin-top:6px; font-size:13.5px; font-weight:800; letter-spacing:.05em; color:#111;
+       opacity:0; transition:opacity .4s ease}
+.trace.on{opacity:1}
+
+/* state colouring */
+.clause[data-state=UNHEARD]        {border-left-color:var(--unheard)}
+.clause[data-state=HEARD]          {border-left-color:var(--heard);      background:var(--heard-bg)}
+.clause[data-state=TEACH_BACK_FAIL]{border-left-color:var(--fail);       background:var(--fail-bg)}
+.clause[data-state=UNDERSTOOD]     {border-left-color:var(--understood); background:var(--understood-bg)}
+.clause[data-state=PARTIALLY_HEARD]{border-left-width:14px; border-left-color:var(--partial);
+  background:var(--partial-bg); box-shadow:inset 0 0 0 2px #fb923c}
+.clause[data-state=PARTIALLY_HEARD]::before{
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:.16;
+  background:repeating-linear-gradient(45deg,#c2410c 0 14px,transparent 14px 28px);
+  animation:slide 2.4s linear infinite;
+}
+@keyframes slide{to{background-position:40px 0}}
+.clause[data-state=PARTIALLY_HEARD] .blocked{display:block}
+.clause[data-state=HEARD]           .chip{background:var(--heard)}
+.clause[data-state=PARTIALLY_HEARD] .chip{background:var(--partial)}
+.clause[data-state=TEACH_BACK_FAIL] .chip{background:var(--fail)}
+.clause[data-state=UNDERSTOOD]      .chip{background:var(--understood)}
+.clause[data-state=HEARD]           .bar i{background:var(--heard)}
+.clause[data-state=PARTIALLY_HEARD] .bar i{background:var(--partial)}
+.clause[data-state=TEACH_BACK_FAIL] .bar i{background:var(--fail)}
+.clause[data-state=UNDERSTOOD]      .bar i{background:var(--understood)}
+.clause.speaking{box-shadow:0 0 0 3px #93c5fd}
+
+/* the transition animation — 1.4 s, deliberately slow enough to read on video */
+.clause.flash{animation:flash 1.4s ease-out}
+@keyframes flash{0%{box-shadow:inset 0 0 0 2000px rgba(255,214,102,.85)}
+                 25%{box-shadow:inset 0 0 0 2000px rgba(255,214,102,.55)}
+                 100%{box-shadow:inset 0 0 0 2000px rgba(255,214,102,0)}}
+.clause.flash .chip{animation:pop .9s cubic-bezier(.2,1.5,.4,1)}
+@keyframes pop{0%{transform:scale(.72); opacity:.3}45%{transform:scale(1.14)}100%{transform:scale(1)}}
+
+/* ------------------------------------------ (c) CONSENT RECORD VIEWER */
+.verdict{border:2px solid var(--ink); border-radius:3px; padding:11px 13px; margin-bottom:11px}
+.verdict .d{font-size:30px; font-weight:900; letter-spacing:.06em}
+.verdict.REFUSED{border-color:var(--fail); background:var(--fail-bg)} .verdict.REFUSED .d{color:var(--fail)}
+.verdict.GRANTED{border-color:var(--understood); background:var(--understood-bg)} .verdict.GRANTED .d{color:var(--understood)}
+.verdict.PENDING{border-color:var(--dim); background:#f8f8f6} .verdict.PENDING .d{color:var(--dim)}
+.verdict p{margin:5px 0 0; font-size:13px}
+.hash{margin:11px 0; font-size:11.5px; word-break:break-all; color:#2c3038;
+      background:#f6f5f2; border:1px dashed var(--rule); border-radius:3px; padding:8px}
+.hash b{display:block; font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+        color:var(--dim); margin-bottom:3px; font-family:inherit}
+.refusal{border-left:5px solid var(--fail); background:var(--fail-bg); padding:8px 11px;
+         margin-bottom:8px; font-size:13px}
+.refusal b{color:var(--fail); letter-spacing:.06em}
+table{width:100%; border-collapse:collapse; font-size:13px}
+th,td{text-align:left; padding:6px 7px; border-bottom:1px solid var(--rule); vertical-align:top}
+th{font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim)}
+td.st{font-weight:800; font-size:11.5px; letter-spacing:.05em; white-space:nowrap}
+td.st[data-s=UNHEARD]{color:var(--unheard)} td.st[data-s=HEARD]{color:var(--heard)}
+td.st[data-s=PARTIALLY_HEARD]{color:var(--partial)} td.st[data-s=TEACH_BACK_FAIL]{color:var(--fail)}
+td.st[data-s=UNDERSTOOD]{color:var(--understood)}
+
+/* ticker */
+#ticker{max-height:280px; overflow:auto; font-size:13px}
+.tk{border-bottom:1px solid #eeece7; padding:6px 2px; display:flex; gap:9px}
+.tk time{color:#9aa2ae; font-size:11px; white-space:nowrap; padding-top:2px}
+.tk.pass b{color:var(--understood)} .tk.fail b{color:var(--fail)}
+
+/* start screen / buttons */
+button{font:inherit; font-weight:700; letter-spacing:.04em; padding:9px 15px; cursor:pointer;
+       border:1px solid var(--ink); background:var(--ink); color:#fff; border-radius:3px}
+button.ghost{background:#fff; color:var(--ink)}
+input[type=text]{font:inherit; padding:9px 11px; border:1px solid var(--rule); border-radius:3px}
+.row{display:flex; gap:9px; flex-wrap:wrap; align-items:center}
+.note{font-size:12.5px; color:var(--dim); margin-top:9px}
+footer{max-width:1500px; margin:0 auto; padding:0 20px 34px; font-size:12px; color:var(--dim)}
+[hidden]{display:none !important}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="top">
+    <div class="brand">SAMJHA<small>voice-native informed consent · RBI Key Facts Statement · Hindi</small></div>
+    <div class="badges" id="badges"></div>
+  </div>
+  <div class="disclose" id="disclose"></div>
+</header>
+
+<main>
+  <div>
+    <div id="start" class="panel" hidden>
+      <h2>Start</h2>
+      <div class="row">
+        <button id="btn-demo">▶ DEMO MODE — replay scripted call</button>
+        <input type="text" id="call-input" placeholder="or a live call id" size="24">
+        <button class="ghost" id="btn-join">Watch live call</button>
+      </div>
+      <p class="note">Demo mode replays a fixture through the same ingest path, the same
+        tables and the same hashing code a live call uses. The record it produces is
+        stamped <span class="mono">mode: "demo"</span>. It carries no latency, VER or WER
+        figures — nothing in it can be mistaken for a measurement.</p>
+    </div>
+
+    <h2 id="clauses-h" hidden>Live clause state — <span id="call-label"></span></h2>
+    <div id="clauses"></div>
+  </div>
+
+  <aside>
+    <div class="panel" style="margin-bottom:18px">
+      <h2>Consent record <span id="rec-mode" class="mono" style="letter-spacing:0"></span></h2>
+      <div id="record"><p class="note">No record yet.</p></div>
+      <div class="row" style="margin-top:11px">
+        <button class="ghost" id="btn-refresh">Refresh record</button>
+        <a id="rec-link" class="mono" style="font-size:12px" href="#" hidden>open record page →</a>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Call log</h2>
+      <div id="ticker"><p class="note">Waiting for events…</p></div>
+    </div>
+  </aside>
+</main>
+
+<footer id="foot"></footer>
+
+<script>
+"use strict";
+
+/* ---------------------------------------------------------------- constants */
+
+const STATE_HI = {
+  UNHEARD:         "नहीं सुना",
+  PARTIALLY_HEARD: "आंशिक रूप से सुना",
+  HEARD:           "सुना",
+  TEACH_BACK_FAIL: "दोहराव विफल",
+  UNDERSTOOD:      "समझा",
+};
+const KIND_LABEL = {
+  rupee_amount:       "राशि · amount",
+  percentage_apr:     "APR · वार्षिक दर",
+  tenure_months:      "अवधि · tenure",
+  emi_amount:         "किस्त · EMI",
+  account_identifier: "खाता संख्या · account no.",
+  date_deadline:      "तारीख़ · date",
+  unknown:            "value",
+};
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const hhmmss = (ts) => new Date((ts || 0) * 1000).toLocaleTimeString([], { hour12: false });
+
+/* ------------------------------------------------------------------ routing */
+
+const recMatch = location.pathname.match(/^\/record\/(.+)$/);
+const params = new URLSearchParams(location.search);
+let callId = recMatch ? decodeURIComponent(recMatch[1]) : (params.get("call") || "");
+
+/* ------------------------------------------------------------------- badges */
+
+function renderProvider(p) {
+  if (!p || !p.tts) return;   // an older record may carry no provider block
+  const t = p.tts || {}, s = p.stt || {};
+  $("#badges").innerHTML =
+    `<div class="badge"><span class="dot ${recMatch ? "off" : ""}"></span><b>TTS</b>` +
+    `<span class="v">${esc(t.vendor)} <span class="hot">${esc(t.model_id)}</span> / ` +
+    `${esc(t.speaker)} / ${esc(t.lang)} / ${esc((t.sample_rate / 1000) + "kHz")} ` +
+    `${esc(t.audio_format)}</span></div>` +
+    `<div class="badge"><b>STT</b><span class="v">${esc(s.vendor)} ${esc(s.model)} / ` +
+    `${esc(s.language)}${s.mode && s.mode !== "-" ? " / " + esc(s.mode) : ""}</span></div>` +
+    `<div class="badge"><b>seg</b><span class="v">${esc(t.segment)} · flush</span>` +
+    `<b>tsf</b><span class="v">${esc(t.time_scale_factor)}</span></div>`;
+  $("#disclose").textContent = [p.fallback, p.channel].filter(Boolean).join("  ·  ");
+  $("#foot").textContent =
+    "All data synthetic — no real borrower data, ever. " + (p.channel || "") + " " +
+    (p.fallback || "");
+}
+
+/* ------------------------------------------------- (a) live clause state */
+
+const clauses = new Map();   // clause_id -> {data, el}
+
+function clauseEl(id) {
+  let c = clauses.get(id);
+  if (c) return c;
+  const el = document.createElement("article");
+  el.className = "clause";
+  el.dataset.state = "UNHEARD";
+  el.innerHTML =
+    `<div class="ord"></div>
+     <div>
+       <div class="title"></div><div class="title-en"></div>
+       <div class="barrow"><div class="bar"><i></i></div><span class="readout"></span></div>
+       <div class="kvs"></div>
+       <div class="reason"></div>
+       <div class="trace"></div>
+     </div>
+     <div>
+       <span class="chip">UNHEARD<span class="hi">${STATE_HI.UNHEARD}</span></span>
+       <div class="blocked">⚠ CONSENT BLOCKED</div>
+     </div>`;
+  c = { el, state: "UNHEARD", ordinal: 0 };
+  clauses.set(id, c);
+  $("#clauses").appendChild(el);
+  reorder();
+  $("#clauses-h").hidden = false;
+  return c;
+}
+
+function reorder() {
+  [...clauses.values()]
+    .sort((a, b) => (a.ordinal - b.ordinal))
+    .forEach((c) => $("#clauses").appendChild(c.el));
+}
+
+function applyClause(ev) {
+  const id = ev.clause_id;
+  if (!id) return;
+  const c = clauseEl(id);
+  const el = c.el;
+  if (ev.ordinal !== undefined && ev.ordinal !== null && ev.ordinal !== c.ordinal) {
+    c.ordinal = ev.ordinal; reorder();
+  }
+  $(".ord", el).textContent = c.ordinal + 1;
+  $(".title", el).textContent = ev.title_hi || $(".title", el).textContent || id;
+  $(".title-en", el).textContent = ev.title_en || $(".title-en", el).textContent || id;
+
+  const total = Number(ev.total_duration_s || 0);
+  const heard = Number(ev.heard_through_s || 0);
+  const pct = total > 0 ? Math.min(100, (100 * heard) / total) : 0;
+  $(".bar i", el).style.width = pct.toFixed(1) + "%";
+  $(".readout", el).textContent = total > 0
+    ? `${heard.toFixed(1)} / ${total.toFixed(1)} s  ·  ${pct.toFixed(0)}% heard`
+    : "";
+
+  // Ticks mark where each key value's segment ENDS. A red tick to the right of the fill
+  // is a value the borrower was cut off before hearing — the defect, drawn to scale.
+  [...el.querySelectorAll(".tick,.cut")].forEach((n) => n.remove());
+  const bar = $(".bar", el);
+  for (const kv of ev.key_values || []) {
+    if (kv.segment_end_s == null || !total) continue;
+    const t = document.createElement("span");
+    t.className = "tick" + (kv.heard ? "" : " miss");
+    t.style.left = Math.min(99.5, (100 * kv.segment_end_s) / total) + "%";
+    bar.appendChild(t);
+  }
+  if (ev.state === "PARTIALLY_HEARD" && total > 0 && heard > 0) {
+    const cut = document.createElement("span");
+    cut.className = "cut";
+    cut.style.left = pct.toFixed(1) + "%";
+    bar.appendChild(cut);
+  }
+
+  $(".kvs", el).innerHTML = (ev.key_values || []).map((kv) =>
+    `<span class="kv ${kv.heard ? "yes" : "no"}">
+       <span class="mark">${kv.heard ? "✓" : "✗"}</span>
+       <span><span class="lbl">${esc(KIND_LABEL[kv.kind] || kv.kind)}</span><br>
+       <span class="val">${esc(kv.raw_text)}</span>
+       ${kv.spoken_text ? `<span class="spoken"> · ${esc(kv.spoken_text)}</span>` : ""}
+       ${kv.heard ? "" : `<span class="lbl" style="color:#b91c1c"> not heard</span>`}</span>
+     </span>`).join("");
+
+  $(".reason", el).textContent = ev.reason || "";
+  el.classList.toggle("speaking", !!ev.active);
+
+  if (ev.state && ev.state !== c.state) {
+    const from = c.state;
+    c.state = ev.state;
+    el.dataset.state = ev.state;
+    $(".chip", el).innerHTML =
+      `${ev.state}<span class="hi">${STATE_HI[ev.state] || ""}</span>`;
+    const tr = $(".trace", el);
+    tr.textContent = `${from}  →  ${ev.state}`;
+    tr.classList.add("on");
+    el.classList.remove("flash");
+    void el.offsetWidth;               // restart the animation on a repeat transition
+    el.classList.add("flash");
+    clearTimeout(c.timer);
+    c.timer = setTimeout(() => tr.classList.remove("on"), 6000);
+  }
+}
+
+/* ------------------------------------------------------------------ ticker */
+
+function tick(ts, html, cls = "") {
+  const t = $("#ticker");
+  if (t.firstElementChild && t.firstElementChild.tagName === "P") t.innerHTML = "";
+  const d = document.createElement("div");
+  d.className = "tk " + cls;
+  d.innerHTML = `<time>${hhmmss(ts)}</time><div>${html}</div>`;
+  t.prepend(d);
+  while (t.children.length > 60) t.lastElementChild.remove();
+}
+
+/* --------------------------------------------- (c) consent record viewer */
+
+async function loadRecord() {
+  if (!callId) return;
+  const r = await fetch(`/calls/${encodeURIComponent(callId)}/record`);
+  if (!r.ok) return;
+  renderRecord(await r.json());
+}
+
+/* The record is rebuilt and re-hashed from the tables on every read, so it can track a
+   call in flight — which is worth far more on a recording than a panel that says
+   "no record yet" for forty seconds. Throttled: it is one fetch, but per transition. */
+let recAt = 0, recTimer = 0;
+function loadRecordSoon() {
+  const wait = Math.max(0, 1500 - (Date.now() - recAt));
+  clearTimeout(recTimer);
+  recTimer = setTimeout(() => { recAt = Date.now(); loadRecord(); }, wait);
+}
+
+function renderRecord(sealed) {
+  const rec = sealed.record || {};
+  const d = (rec.consent || {}).decision || "PENDING";
+  const rows = (rec.clauses || []).map((c) =>
+    `<tr><td>${esc(c.title_hi || c.clause_id)}<br>
+       <span class="lbl" style="font-size:11px;color:#5a6069">${esc(c.clause_id)}</span></td>
+     <td class="st" data-s="${esc(c.final_state)}">${esc(c.final_state)}</td>
+     <td>${c.heard_through_pct}%<br><span style="font-size:11px;color:#5a6069">
+       ${c.heard_through_s}/${c.total_duration_s}s</span></td>
+     <td>${(c.key_values || []).map((k) =>
+       `<span style="color:${k.heard ? "#15803d" : "#b91c1c"}">${k.heard ? "✓" : "✗"}
+        ${esc(k.raw_text)}</span>`).join("<br>")}</td>
+     <td>${(c.teach_back || []).map((t) =>
+       `<b style="color:${t.passed ? "#15803d" : "#b91c1c"}">${t.passed ? "PASS" : "FAIL"}</b>
+        ${esc(t.transcript)}<br><span style="font-size:11px;color:#5a6069">${esc(t.grade)}</span>`
+       ).join("<br>") || "—"}</td></tr>`).join("");
+
+  $("#rec-mode").textContent = rec.mode ? `mode: ${rec.mode}` : "";
+  $("#record").innerHTML =
+    `<div class="verdict ${esc(d)}"><div class="d">${esc(d)}</div>
+       <p>${esc((rec.consent || {}).reason || "")}</p>
+       ${(rec.consent || {}).flagged_for_callback
+         ? '<p><b>⚑ FLAGGED FOR HUMAN CALLBACK</b></p>' : ""}
+       <p>Consent permitted: <b>${rec.consent_permitted ? "yes" : "no"}</b>
+       ${(rec.clauses_blocking_consent || []).length
+         ? " — blocked by " + esc((rec.clauses_blocking_consent || []).join(", ")) : ""}</p>
+     </div>` +
+    ((rec.refusals || []).length
+      ? `<h2>Refusals — ${rec.refusals.length}</h2>` + rec.refusals.map((r) =>
+          `<div class="refusal"><b>REFUSED</b>
+             ${r.clause_id ? `· ${esc(r.clause_id)}` : "· whole KFS"}<br>
+             ${esc(r.reason)}</div>`).join("")
+      : "") +
+    `<div class="hash mono"><b>${esc(sealed.hash_algorithm)} of the canonical record</b>
+       ${esc(sealed.hash)}</div>
+     <table><thead><tr><th>Clause</th><th>Final state</th><th>Heard</th>
+       <th>Key values</th><th>Teach-back</th></tr></thead><tbody>${rows}</tbody></table>
+     <p class="note">Canonicalisation: <span class="mono">${esc(sealed.canonicalization)}</span>.
+       <span class="mono">generated_at</span> is outside the hashed payload, so the same
+       call always hashes to the same digest.
+       ${rec.synthetic_data ? "Synthetic data." : ""}</p>`;
+}
+
+/* ------------------------------------------------------------- live socket */
+
+function connect(id) {
+  callId = id;
+  $("#start").hidden = true;
+  $("#rec-link").hidden = false;
+  $("#rec-link").href = `/record/${encodeURIComponent(id)}`;
+  $("#call-label").textContent = id;
+  history.replaceState(null, "", `/?call=${encodeURIComponent(id)}`);
+
+  const ws = new WebSocket(
+    `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}` +
+    `/calls/${encodeURIComponent(id)}/live`);
+
+  ws.onmessage = (m) => {
+    const ev = JSON.parse(m.data);
+    switch (ev.type) {
+      case "hello":
+        renderProvider(ev.provider);
+        $("#call-label").textContent = (ev.call && ev.call.label) || id;
+        loadRecordSoon();
+        break;
+      case "provider":
+        renderProvider(ev);
+        break;
+      case "call_start":
+        if (ev.label) $("#call-label").textContent = ev.label;
+        tick(ev.ts, `<b>Call started.</b> ${esc(ev.kfs_ref || "")}`);
+        break;
+      case "clause_registered":
+      case "clause_state":
+        applyClause(ev);
+        if (ev.type === "clause_state" && ev.prev_state && ev.prev_state !== ev.state) {
+          tick(ev.ts, `<b>${esc(ev.clause_id)}</b> ${esc(ev.prev_state)} →
+            <b>${esc(ev.state)}</b><br>${esc(ev.reason || "")}`);
+          loadRecordSoon();
+        }
+        break;
+      case "teach_back":
+        tick(ev.ts, `<b>teach-back ${ev.passed ? "PASS" : "FAIL"}</b> ·
+          ${esc(ev.clause_id)}<br>«${esc(ev.transcript)}»<br>
+          <span style="color:#5a6069">${esc(ev.grade)}</span>`,
+          ev.passed ? "pass" : "fail");
+        break;
+      case "consent":
+        tick(ev.ts, `<b>consent ${esc(ev.decision)}</b> ${esc(ev.reason || "")}`,
+          ev.decision === "REFUSED" ? "fail" : "pass");
+        loadRecord();
+        break;
+      case "call_end":
+        tick(ev.ts, "<b>Call ended.</b>");
+        loadRecord();
+        break;
+      default:
+        tick(ev.ts, esc(ev.text || ev.type));
+    }
+  };
+  ws.onclose = () => { $(".dot") && $(".dot").classList.add("off"); };
+}
+
+/* --------------------------------------------------------------- bootstrap */
+
+$("#btn-demo").onclick = async () => {
+  const r = await fetch("/demo", { method: "POST" });
+  connect((await r.json()).call_id);
+};
+$("#btn-join").onclick = () => {
+  const v = $("#call-input").value.trim();
+  if (v) connect(v);
+};
+$("#btn-refresh").onclick = loadRecord;
+
+(async () => {
+  if (recMatch) {
+    // Record viewer: no socket, no clause panel — just the sealed record.
+    document.body.classList.add("recordview");
+    $("#start").hidden = true;
+    $("#ticker").closest(".panel").hidden = true;
+    $("#call-label").textContent = callId;
+    const r = await fetch(`/calls/${encodeURIComponent(callId)}/record`);
+    if (r.ok) {
+      const sealed = await r.json();
+      renderProvider((sealed.record || {}).provider);
+      renderRecord(sealed);
+    } else {
+      $("#record").innerHTML = `<p class="note">No record for
+        <span class="mono">${esc(callId)}</span>.</p>`;
+    }
+    return;
+  }
+
+  renderProvider(await (await fetch("/provider")).json());
+  if (params.get("demo") === "1") {
+    const r = await fetch("/demo", { method: "POST" });
+    connect((await r.json()).call_id);
+  } else if (callId) {
+    connect(callId);
+    loadRecord();
+  } else {
+    $("#start").hidden = false;
+  }
+})();
+</script>
+</body>
+</html>

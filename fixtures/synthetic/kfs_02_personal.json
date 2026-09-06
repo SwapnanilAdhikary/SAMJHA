@@ -1,0 +1,59 @@
+{
+  "proposal_no": "PL/2026/117203",
+  "loan_type": "Personal Loan",
+  "sanctioned_amount_inr": "300000",
+  "disbursal_mode": "upfront",
+  "loan_term_months": 48,
+  "instalments": {
+    "type_of_instalments": "Monthly",
+    "number_of_epis": 48,
+    "epi_amount_inr": "8464",
+    "repayment_commencement": "1st of the month following disbursal"
+  },
+  "interest": {
+    "pct": "15.75",
+    "kind": "fixed"
+  },
+  "floating": null,
+  "fees": [
+    {
+      "item": "Processing fee",
+      "payable_to": "RE",
+      "timing": "one_time",
+      "amount_inr": "7500",
+      "percentage": null,
+      "net_of_gst": false
+    },
+    {
+      "item": "Credit protect premium",
+      "payable_to": "third_party",
+      "timing": "one_time",
+      "amount_inr": "4800",
+      "percentage": null,
+      "net_of_gst": false
+    },
+    {
+      "item": "Annual service charge",
+      "payable_to": "RE",
+      "timing": "recurring",
+      "amount_inr": "600",
+      "percentage": null,
+      "net_of_gst": false
+    },
+    {
+      "item": "Part-prepayment charges",
+      "payable_to": "RE",
+      "timing": "one_time",
+      "amount_inr": null,
+      "percentage": "2.00",
+      "net_of_gst": false
+    }
+  ],
+  "apr_pct": "18.09",
+  "total_repayment_inr": "420972",
+  "cooling_off_period_days": 7,
+  "recovery_agent_clause": "Recovery agents are engaged only from the panel published on the lender's website, and may contact the borrower between 8 AM and 7 PM.",
+  "grievance_officer_name": "Imran Qureshi",
+  "grievance_officer_phone": "1800 209 6612",
+  "loan_account_no": "915711400712"
+}
