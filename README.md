@@ -1,10 +1,15 @@
 # SAMJHA (समझा) — voice-native informed consent for Indian retail lending
 
-> **Status: in progress.** Scaffold, normaliser, channel simulation and preflight are
-> working. The agent, eval harness and web UI are not built yet. No performance numbers
-> are claimed here because none have been measured yet — see
-> [`evals/ACCEPTANCE.md`](evals/ACCEPTANCE.md) for the test that was pre-registered
-> *before* any product code existed.
+> **Status: end to end.** KFS pipeline, consent agent, eval harness and web UI all built;
+> 337 tests pass. Measured results are in [`RIME_EVIDENCE.md`](RIME_EVIDENCE.md), against a
+> test pre-registered in [`evals/ACCEPTANCE.md`](evals/ACCEPTANCE.md) *before any product
+> code existed*. Not yet done: the human listening panel, and a live PSTN leg (out of
+> scope — the channel is simulated).
+
+**Headline result.** Value Error Rate on account identifiers, 8 kHz μ-law channel,
+model/speaker/lang held constant: **100% → 0%** (Deepgram), **75% → 0%** (Sarvam).
+Four of six categories show *no* effect and are reported as the negative result they are —
+Rime Coda handles Indian digit grouping, percentages and tenures correctly on its own.
 
 RBI mandates a Key Facts Statement for every retail loan, in a language the borrower
 understands, with informed acknowledgement. In practice lenders email a PDF and collect an
@@ -22,13 +27,17 @@ back in her own words; and emits a consent record made of audio.
 ## Quick start
 
 ```bash
-make setup       # uv sync against pinned deps
-make preflight   # verify our voice triple against Rime's LIVE catalog
-make test        # normaliser regression suite
-make channel     # self-check the telephone-channel chain
+make setup          # uv sync against pinned deps
+cp .env.example .env   # then add your keys
 
-cp .env.example .env   # add RIME_API_KEY
-make battery     # generate the day-1 clips, then listen to them
+make preflight      # verify the voice triple against Rime's LIVE catalog
+make test           # 337 tests
+make channel        # self-check the telephone-channel chain
+make demo-fixtures  # the two stress cases, no network needed
+make secrets        # fail if a credential ever touched git history
+
+make eval           # the A/B (smoke run; --full for all 120 utterances)
+uv run uvicorn api.main:app --port 8000   # then open /?demo=1
 ```
 
 ---
@@ -89,9 +98,13 @@ Stated before the results exist, not after.
 ## Layout
 
 ```
-delivery/     normalizer/hindi.py · rime_ws3.py · config_guard.py
-evals/        ACCEPTANCE.md (pre-registered) · channel.py · corpus/ · results/
-scripts/      battery.py — the day-1 experiments
-tests/        normaliser regression suite
-agent/ kfs/ api/ web/     not built yet
+delivery/   normalizer/hindi.py · rime_ws3.py · config_guard.py
+kfs/        schema.py (RBI Annex A) · build_clauses.py · extract.py · finance.py
+agent/      consent_fsm.py · teachback.py · rushed_consent.py · session.py · main.py
+evals/      ACCEPTANCE.md (pre-registered) · run_eval.py · asr_score.py · channel.py
+            corpus/ (120 typed utterances) · results/ · human_panel/
+api/        main.py · store.py · records.py (hashed consent record)
+web/        index.html — clause state, provider badge, record viewer, ?demo=1
+fixtures/   synthetic/ — 10 KFS documents + PDFs. All synthetic.
+scripts/    battery.py (day-1 experiments) · smoke.py (credential checks)
 ```
