@@ -137,7 +137,38 @@ taking the better number.
 
 ---
 
-## 5. Three Rime findings we measured rather than assumed
+## 5. Four Rime findings we measured rather than assumed
+
+**`/ws3` has no per-flush completion event, and you must wait for `done` to get segment
+boundaries at all.** The protocol emits exactly two frame types: `chunk`, carrying base64
+audio inside JSON, and `done`. There is no `flush_done` and no `segment_done` — the
+committed day-1 transcript
+([`evals/results/battery/frames.json`](evals/results/battery/frames.json)) contains 1543
+`chunk`, 15 `done`, 1 `timestamps`, and nothing else, and a live re-check found the same.
+
+That has a consequence which is easy to get wrong and which we did get wrong. If you send
+every text and every `flush` up front and then `eos`, Rime coalesces the work and the
+single trailing `done` arrives **after all the audio** — so there is no way to tell which
+chunk belongs to which flush segment, and a naive reader attributes all of it to the
+first. `segment=never` plus explicit `flush` gives you control over *utterance
+boundaries*, but it does not by itself give you *attribution*.
+
+What does: send one text, send its `flush`, and **read until that segment's `done` before
+sending the next text**. Then each flush's `done` is the boundary, on one socket, with no
+extra handshake. Measured on a three-segment clause: 1.45 s, 3.53 s, 2.17 s, cleanly
+separated.
+
+This matters here more than it would in most products. `Clause.heard_key_values` asks
+"did the segment carrying this value finish playing?", so a segment credited with zero
+bytes can never be heard — a clause read perfectly to the borrower would record its number
+as *not heard* and block consent permanently. Regression tests against the real frame
+sequence are in [`tests/test_delivery.py`](tests/test_delivery.py); they fail against the
+pipelining version.
+
+*(The A/B in §3 is unaffected: `evals/run_eval.py:103` synthesizes one text per clip, so
+segment 0 is the only segment and attribution is trivially correct. The bug reached the
+multi-segment clause path used by the agent's batch helper and by `scripts/talk.py`.)*
+
 
 **Word-level timestamps do not exist for Hindi, and fail silently.** Docs: emitted "only
 when `lang` is `en`/`eng` or `es`/`spa`, or when `lang` is omitted… no `timestamps` event

@@ -145,10 +145,15 @@ def normalize(raw: dict, *, heard_through_s: float | None = None) -> dict:
         # A value counts as heard only if the ENTIRE segment carrying it finished
         # playing. Derive it when the writer gave us the boundary but not the verdict —
         # the same rule as kfs.clauses.Clause.heard_key_values, which is the authority.
+        # A segment_end_s of 0 means the segment carries no audio — it was never
+        # synthesized — so it cannot have been heard. Without that guard `0 <= 0 + 1e-9`
+        # marks the value heard on a clause that never played. Same rule as
+        # kfs.clauses.Clause.heard_key_values, which is the authority.
         played = ev["heard_through_s"] if heard_through_s is None else heard_through_s
         for kv in ev["key_values"]:
             if kv["segment_end_s"] is not None and not kv["heard"]:
-                kv["heard"] = float(kv["segment_end_s"]) <= played + 1e-9
+                end = float(kv["segment_end_s"])
+                kv["heard"] = end > 0.0 and end <= played + 1e-9
 
     if ev["type"] == "consent":
         ev["decision"] = str(raw.get("decision") or "PENDING").upper()
@@ -236,9 +241,28 @@ def _from_fsm(raw: dict) -> list[dict]:
         return out
 
     if kind == "consent_decision":
-        drop = ("kind", "at", "monotonic_s", "call_id")
-        return [{"ts": ts, "type": "consent",
-                 **{k: v for k, v in raw.items() if k not in drop}}]
+        # `agent/rushed_consent.ConsentDecision` names these fields `granted`,
+        # `human_callback` and `reasons`; the store and the record read `decision`,
+        # `flagged_for_callback` and `reason`. Passing the dict through unchanged left
+        # every REAL call's decision to fall back to "PENDING" with the callback flag
+        # clear — so a refusal, the finding this product exists to produce, silently
+        # became "no decision recorded". The demo fixture hid it by writing the canonical
+        # names directly. Translating here is exactly this adapter's job.
+        drop = ("kind", "at", "monotonic_s", "call_id", "granted", "human_callback",
+                "reasons")
+        reasons = raw.get("reasons") or []
+        ev = {
+            "ts": ts,
+            "type": "consent",
+            **{k: v for k, v in raw.items() if k not in drop},
+            "decision": "GRANTED" if raw.get("granted") else "REFUSED",
+            "flagged_for_callback": bool(raw.get("human_callback")),
+            # Kept as a list too: the record shows the reasons individually, and joining
+            # is only for the one-line `reason` column.
+            "reasons": list(reasons),
+            "reason": "; ".join(str(r) for r in reasons),
+        }
+        return [ev]
 
     return [{"ts": ts, "type": "note", "text": json.dumps(raw, ensure_ascii=False)[:500]}]
 
@@ -256,6 +280,13 @@ def clause_payload(clause) -> dict:
     Lives here so the agent never has to hand-build this dict and drift from the schema.
     Imported lazily: the API must be startable without the delivery stack present.
     """
+    # Delegate the verdict to kfs.clauses.Clause, which is the authority on it, rather
+    # than repeating the arithmetic. Repeating it is how this function came to report a
+    # value as heard for a clause with no audio at all: `0.0 <= 0.0 + 1e-9` is true, so a
+    # clause registered before delivery — or one whose TTS failed — claimed every value
+    # had been heard. Identity comparison, because two KeyValues can be equal by value.
+    heard = {id(kv) for kv in clause.heard_key_values()}
+
     kvs = []
     for i, seg in enumerate(clause.segments):
         if seg.key_value is None:
@@ -268,7 +299,7 @@ def clause_payload(clause) -> dict:
             "raw_text": kv.raw_text,
             "spoken_text": kv.spoken_text,
             "segment_end_s": end,
-            "heard": end <= clause.heard_through_s + 1e-9,
+            "heard": id(kv) in heard,
         })
     return {
         "clause_id": clause.id,

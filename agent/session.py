@@ -30,10 +30,14 @@ Two more deliberate choices, both measured rather than assumed:
     frames to `session.say(text, audio=...)`, which is the supported hook for
     caller-supplied audio.
 
-The LiveKit secret in .env is a masked placeholder, so this file has NOT been run against a
-live room. Everything in it that can be verified without a network is verified in
+Everything in this file that can be verified without a network is verified in
 tests/test_agent.py: the mu-law decoder against ffmpeg, the playout ledger, and the whole
-clause loop against a fake session.
+clause loop against a fake session. That is where the correctness that matters lives, and
+it is deliberately not conditional on a room being connected.
+
+(An earlier version of this note said the LiveKit secret in .env was a masked placeholder.
+It is not — `scripts/smoke.py:117 check_livekit()` authenticates against the live project.
+The claim was stale, and it had talked at least one reader out of trying a real call.)
 
 Self-check (no network):  uv run python -m agent.session
 """
@@ -41,7 +45,9 @@ Self-check (no network):  uv run python -m agent.session
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
+import logging
 import os
 import time
 from collections.abc import Iterator
@@ -59,6 +65,8 @@ from agent.rushed_consent import ConsentDecision, evaluate
 from agent.teachback import grade
 from delivery import rime_ws3
 from kfs.clauses import Clause
+
+logger = logging.getLogger("samjha.agent")
 
 SAMPLE_RATE = rime_ws3.SAMPLE_RATE  # 8000 — telephony, and the eval's channel
 FRAME_MS = 20
@@ -147,26 +155,46 @@ class RimeSocketPool:
     """
 
     def __init__(self, *, lang: str = rime_ws3.LANG, speaker: str = rime_ws3.SPEAKER) -> None:
+        self._lang = lang
+        self._speaker = speaker
         self._url = rime_ws3.url(lang=lang, speaker=speaker)
         self._live: websockets.ClientConnection | None = None
         self._spare: websockets.ClientConnection | None = None
 
     async def _open(self) -> websockets.ClientConnection:
-        return await websockets.connect(
-            self._url,
-            additional_headers={"Authorization": f"Bearer {rime_ws3.api_key()}"},
-            max_size=None,
-        )
+        """Retried, because the handshake fails transiently and mid-call.
+
+        Delegated to delivery/rime_ws3.py so this and the batch helper share one retry
+        policy. This used to call websockets.connect directly with no retry.
+        """
+        return await rime_ws3.connect_with_retry(lang=self._lang, speaker=self._speaker)
 
     async def start(self) -> None:
         self._live = await self._open()
-        self._spare = await self._open()
+        # Best-effort even at startup: a call that can speak is better than no call.
+        self._spare = await self._open_spare()
+
+    async def _open_spare(self) -> websockets.ClientConnection | None:
+        """The warm spare is an OPTIMIZATION and must never end a call.
+
+        Its only job is that the 250-350 ms reconnect after a barge-in lands on the
+        reconnect rather than on the borrower. If Rime will not give us one, the next
+        barge-in is slower — that is all. Losing the whole consent call instead is a
+        wildly worse trade, and it is what happened live: an HTTP 502 here propagated out
+        of hard_stop(), through deliver_clause and run_consent_flow, and crashed the job
+        after two clauses had already been read.
+        """
+        try:
+            return await self._open()
+        except Exception as e:  # noqa: BLE001 — never fatal by design
+            logger.warning("no warm Rime spare (%s: %s); the next barge-in pays the "
+                           "reconnect latency", type(e).__name__, e)
+            return None
 
     async def synthesize(self, text: str, *, timeout: float = 30.0) -> bytes:
         """One text -> one flush -> the mu-law bytes for exactly that segment."""
         if self._live is None:
-            await self.start()
-        assert self._live is not None
+            self._live = await self._open()
         return await rime_ws3_flush(self._live, text, timeout=timeout)
 
     async def hard_stop(self) -> None:
@@ -174,22 +202,34 @@ class RimeSocketPool:
 
         `clear` is sent first even though it does not cancel anything, because it does drop
         text not yet flushed and costs nothing. The close is what actually stops audio.
+
+        Never raises. Stopping the audio is the part that matters and it has already
+        happened by the time anything here can fail.
         """
         old, self._live, self._spare = self._live, self._spare, None
         if old is not None:
-            try:
+            with contextlib.suppress(Exception):
                 await old.send(json.dumps({"operation": "clear"}))
-            except Exception:
-                pass  # already dead; the close below is the real stop
-            await old.close()
+            with contextlib.suppress(Exception):
+                await old.close()  # THIS is the stop
+
         if self._live is None:
-            self._live = await self._open()
-        self._spare = await self._open()
+            # No spare to promote. Try now, but leave it None rather than raising:
+            # synthesize() opens lazily, and a clause we cannot speak is recorded as
+            # undelivered by deliver_clause — which keeps consent blocked, correctly.
+            try:
+                self._live = await self._open()
+            except Exception as e:  # noqa: BLE001
+                logger.warning("could not reopen the Rime socket after barge-in (%s: %s)",
+                               type(e).__name__, e)
+
+        self._spare = await self._open_spare()
 
     async def aclose(self) -> None:
         for ws in (self._live, self._spare):
             if ws is not None:
-                await ws.close()
+                with contextlib.suppress(Exception):
+                    await ws.close()
         self._live = self._spare = None
 
 
@@ -317,7 +357,23 @@ async def deliver_clause(session: AgentSession, fsm: ConsentFSM, clause: Clause,
 
     for seg in clause.segments:
         if pool is not None and not seg.audio:
-            seg.audio = await pool.synthesize(seg.text)
+            try:
+                seg.audio = await pool.synthesize(seg.text)
+            except Exception as e:  # noqa: BLE001 — Rime is US-only and fails mid-call
+                # A clause we could not speak was certainly not heard. Record what
+                # actually played and stop, rather than letting the exception end the
+                # call: the FSM leaves this clause blocking consent, which is the correct
+                # outcome, and the borrower keeps a line she can be called back on.
+                logger.warning("Rime failed mid-clause %s (%s: %s); recording it as "
+                               "undelivered", clause.id, type(e).__name__, e)
+                if played <= 0.0:
+                    state = fsm.delivery_dropped(
+                        clause.id, note=f"tts_failed:{type(e).__name__}")
+                else:
+                    # Some of it did play. `played` is the honest figure, and the segments
+                    # that completed keep their heard key values.
+                    state = fsm.end_delivery(clause.id, played_s=played, interrupted=True)
+                return ClauseOutcome(clause.id, state.value, round(played, 3), True)
 
         handle = session.say(seg.text, audio=_aiter(frames_from_ulaw(seg.audio)),
                              allow_interruptions=True)

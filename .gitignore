@@ -10,3 +10,10 @@ evals/corpus/noise/
 events/
 data/
 *.db
+
+# Regenerable demo audio. The .m4a mixes and the evidence clips ARE committed — these are
+# the lossless per-clause originals and the full-call master, remade by:
+#   make e2e ARGS="--doc demo/demo_kfs.pdf --drive --save demo/audio"
+demo/audio/
+demo/full_call.wav
+video/_raw/

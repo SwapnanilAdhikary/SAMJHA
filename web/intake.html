@@ -1,0 +1,499 @@
+<!doctype html>
+<!--
+  SAMJHA — document intake. THE HELPER'S PAGE, and deliberately text-heavy.
+
+  Choosing a PDF off a filesystem is a literacy-heavy act, so the borrower does not do it.
+  This page is for whoever actually holds the document: a lender's field officer, a branch
+  clerk, an NGO helper. That actor can read, so this page uses words, tables and a review
+  step — the opposite of web/call.html, which is the borrower's and is near-textless.
+
+  Three rules it enforces on the human, not just on the parser:
+
+    1. NOTHING IS GUESSED. Every required Annex-A field the document did not yield shows as
+       a red row with an input. The button stays disabled until each is filled. A field
+       left to a pydantic default would be read aloud as a positive statement about the
+       loan — see kfs/fields.py.
+    2. THE DOCUMENT'S OWN WORDING IS SHOWN. A field matched by synonym is marked, quoting
+       the label actually printed, so approving a drift match is a decision rather than an
+       accident.
+    3. SYNTHETIC vs REAL IS DECLARED, never inferred, and the choice is un-defaulted. It
+       goes into the sha256-sealed consent record as an uploader assertion.
+
+  It also previews the CLAUSES — what will actually be spoken, in Hindi — because a table
+  of parsed values is not what the borrower experiences.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAMJHA — KFS intake</title>
+<style>
+  :root {
+    --bg:#11131a; --panel:#191c26; --line:#2b3040; --ink:#e9ecf4; --dim:#9aa3b8;
+    --ok:#3ddc84; --warn:#ffb020; --bad:#ff5c5c; --drift:#54a0ff; --accent:#8b7cff;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--bg); color:var(--ink);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  /* No webfont: a demo must not depend on fonts.googleapis.com being reachable. */
+  .hi { font-family:"Noto Sans Devanagari","Nirmala UI","Kohinoor Devanagari",
+        "Mangal",system-ui,sans-serif; }
+  .mono { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  header {
+    padding:18px 22px; border-bottom:1px solid var(--line);
+    display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+  }
+  h1 { font-size:19px; margin:0; letter-spacing:.02em; }
+  h2 { font-size:15px; margin:0 0 12px; text-transform:uppercase; letter-spacing:.08em;
+       color:var(--dim); }
+  main { max-width:1000px; margin:0 auto; padding:22px; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:10px;
+           padding:18px; margin-bottom:18px; }
+  .note { color:var(--dim); font-size:13px; }
+  .role { color:var(--dim); font-size:13px; }
+  a { color:var(--drift); }
+
+  label.block { display:block; margin:12px 0 6px; font-weight:600; font-size:13px; }
+  input[type=text], input[type=file], select {
+    background:#0e1017; color:var(--ink); border:1px solid var(--line);
+    border-radius:6px; padding:9px 10px; font-size:14px; width:100%;
+  }
+  input[type=text]:focus, select:focus { outline:2px solid var(--accent); }
+  .radios { display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
+  .radios label {
+    display:flex; align-items:center; gap:8px; padding:10px 12px; cursor:pointer;
+    border:1px solid var(--line); border-radius:8px; background:#0e1017; font-size:14px;
+  }
+  .radios label:has(input:checked) { border-color:var(--accent); background:#1b1830; }
+  .radios label.disabled { opacity:.45; cursor:not-allowed; }
+
+  button {
+    font:600 15px/1 inherit; padding:12px 18px; border-radius:8px; cursor:pointer;
+    border:1px solid var(--line); background:#232838; color:var(--ink);
+  }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#0d0a1f; }
+  button:disabled { opacity:.4; cursor:not-allowed; }
+
+  table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  th, td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line);
+           vertical-align:top; }
+  th { color:var(--dim); font-size:11px; text-transform:uppercase; letter-spacing:.07em; }
+  tr.missing { background:rgba(255,92,92,.09); }
+  tr.drifted { background:rgba(84,160,255,.08); }
+
+  .chip { display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px;
+          font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+  .chip.parsed  { background:#20303f; color:var(--dim); }
+  .chip.drifted { background:#16324f; color:var(--drift); }
+  .chip.missing { background:#43181d; color:var(--bad); }
+  .chip.human   { background:#3a2c12; color:var(--warn); }
+
+  .banner { padding:12px 14px; border-radius:8px; margin-bottom:14px; font-size:14px; }
+  .banner.bad  { background:#3a1417; border:1px solid #5d2429; }
+  .banner.ok   { background:#12301f; border:1px solid #1f5636; }
+  .banner.warn { background:#3a2c12; border:1px solid #5d4718; }
+
+  .clause { border-left:3px solid var(--line); padding:8px 0 8px 12px; margin-bottom:12px; }
+  .clause .title { font-weight:700; margin-bottom:3px; }
+  .clause .text { color:#cbd3e6; font-size:14px; }
+  .kv { font-size:12px; color:var(--dim); margin-top:5px; }
+  .kv b { color:var(--ok); font-weight:700; }
+  code { background:#0e1017; padding:1px 5px; border-radius:4px; font-size:12.5px; }
+  .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .grow { flex:1 1 240px; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SAMJHA · KFS intake</h1>
+  <span class="role">for the officer or helper holding the document</span>
+  <span style="flex:1"></span>
+  <a href="/" class="mono" style="font-size:13px">evidence panel →</a>
+</header>
+
+<main>
+
+<div class="panel">
+  <h2>1 · The document</h2>
+  <p class="note">
+    RBI Key Facts Statement as <b>PDF</b> or <b>Word (.docx)</b>. Read deterministically
+    from the table grid — no OCR and no model in the loop, so a photograph or a scan
+    cannot be used here.
+  </p>
+
+  <label class="block" for="file">KFS file</label>
+  <input type="file" id="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+
+  <label class="block">Who is uploading this?</label>
+  <div class="radios" id="roles">
+    <label><input type="radio" name="role" value="lender_system" checked> Lender / origination system</label>
+    <label><input type="radio" name="role" value="branch_helper"> Branch clerk or helper</label>
+    <label><input type="radio" name="role" value="borrower"> The borrower herself</label>
+  </div>
+  <p class="note">Recorded in the consent record, so an auditor can see whether one person filled every role.</p>
+
+  <label class="block">Is this a real borrower's document?</label>
+  <div class="radios" id="synthetic">
+    <label><input type="radio" name="synth" value="true" checked> Specimen / synthetic</label>
+    <label id="real-label"><input type="radio" name="synth" value="false"> Real borrower data</label>
+  </div>
+  <p class="note" id="real-note"></p>
+
+  <div class="row" style="margin-top:16px">
+    <button class="primary" id="btn-upload" disabled>Read the document</button>
+    <span class="note" id="upload-status"></span>
+  </div>
+</div>
+
+<div id="result" hidden></div>
+
+<div class="panel">
+  <h2>Recent documents</h2>
+  <div id="recent"><p class="note">None yet.</p></div>
+</div>
+
+</main>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+let doc = null;   // the document view returned by the API
+
+// ---------------------------------------------------------------- real-data gate
+
+async function checkRealDataAllowed() {
+  // The server refuses non-synthetic uploads unless SAMJHA_ALLOW_REAL_DATA is set. Show
+  // that as a disabled option with its reason, rather than letting someone pick it and
+  // meet a 403 after choosing a file.
+  let allowed = false;
+  try {
+    const r = await fetch("/health");
+    allowed = !!(await r.json()).allow_real_data;
+  } catch { /* leave it disabled */ }
+
+  const input = $("#real-label input");
+  input.disabled = !allowed;
+  $("#real-label").classList.toggle("disabled", !allowed);
+  $("#real-note").textContent = allowed
+    ? "This server is configured to accept real borrower data. README.md's “no real borrower data, ever” no longer describes this deployment."
+    : "Real borrower data is refused by this server. Set SAMJHA_ALLOW_REAL_DATA=1 to allow it.";
+}
+
+// -------------------------------------------------------------------- uploading
+
+$("#file").addEventListener("change", () => {
+  $("#btn-upload").disabled = !$("#file").files.length;
+  $("#upload-status").textContent = "";
+});
+
+$("#btn-upload").addEventListener("click", async () => {
+  const file = $("#file").files[0];
+  if (!file) return;
+
+  const role = $("input[name=role]:checked").value;
+  const synthetic = $("input[name=synth]:checked").value;
+  const q = new URLSearchParams({ filename: file.name, role, synthetic });
+
+  $("#btn-upload").disabled = true;
+  $("#upload-status").textContent = `reading ${file.name}…`;
+  try {
+    // The file IS the request body. Not multipart: python-multipart is not installed,
+    // and this is less code on both sides.
+    const r = await fetch(`/kfs?${q}`, { method: "POST", body: file });
+    const body = await r.json();
+    if (!r.ok) {
+      $("#upload-status").textContent = "";
+      render(null, body.detail || `HTTP ${r.status}`);
+      return;
+    }
+    $("#upload-status").textContent = "";
+    doc = body;
+    render(doc);
+    loadRecent();
+  } catch (e) {
+    render(null, String(e));
+  } finally {
+    $("#btn-upload").disabled = !$("#file").files.length;
+  }
+});
+
+// -------------------------------------------------------------------- rendering
+
+function fieldRow(f) {
+  const corrected = (doc.corrections || []).find((c) => c.label === f.label);
+  const status = corrected ? "human" : f.status;
+  const chip = { parsed: "parsed", drifted: "matched by synonym", missing: "NOT READ",
+                 human: "supplied by hand" }[status] || status;
+
+  let value;
+  if (f.status === "missing" && !corrected) {
+    value = `<input type="text" data-label="${esc(f.label)}" class="fix"
+                    placeholder="${esc(f.prompt || f.label)}">`;
+  } else {
+    value = `<span class="mono">${esc(corrected ? corrected.value : f.value)}</span>`;
+  }
+
+  // The document's OWN wording, quoted, whenever it differs from Annex A's.
+  const drift = f.status === "drifted" && f.document_label
+    ? `<div class="note">printed as <code>${esc(f.document_label)}</code></div>` : "";
+  const derived = f.derived
+    ? `<div class="note">read as prose, not as a number</div>` : "";
+
+  return `<tr class="${f.status === "missing" && !corrected ? "missing" : f.status === "drifted" ? "drifted" : ""}">
+    <td>${esc(f.label)}${drift}${derived}</td>
+    <td>${value}</td>
+    <td><span class="chip ${status}">${esc(chip)}</span></td>
+  </tr>`;
+}
+
+function render(d, error) {
+  const out = $("#result");
+  out.hidden = false;
+
+  if (error) {
+    out.innerHTML = `<div class="panel"><div class="banner bad">
+      <b>Could not read this document.</b><div style="margin-top:6px">${esc(error)}</div></div>
+      <p class="note">A KFS must be a PDF or .docx whose Part 1 is a real table. A scan, a
+      photograph, or a document laid out with tab stops has no table grid to read.</p>
+    </div>`;
+    return;
+  }
+
+  const missing = d.missing || [];
+  const ready = missing.length === 0 && d.status === "confirmed";
+
+  const banner = ready
+    ? `<div class="banner ok"><b>Every required field was read.</b>
+        ${d.clauses.length} clauses will be spoken.</div>`
+    : `<div class="banner bad"><b>${missing.length} required field(s) were not read.</b>
+        Fill them in below. Nothing is guessed: a field left blank would otherwise be
+        spoken as a statement about this loan — for example a missing cooling-off period
+        becomes “<span class="hi">इस लोन में कूलिंग-ऑफ की अवधि नहीं है।</span>”, denying a
+        statutory right the document may well grant.</div>`;
+
+  const validation = d.validation_error
+    ? `<div class="banner warn"><b>Read, but did not validate:</b>
+        <span class="mono">${esc(d.validation_error)}</span></div>` : "";
+
+  const unknown = Object.keys(d.unknown_labels || {}).length
+    ? `<div class="panel"><h2>Labels we did not recognise</h2>
+        <p class="note">Left alone rather than guessed at. If one of these is really an
+        Annex-A field, add it to <code>kfs/fields.py</code>'s synonym table.</p>
+        <table><tbody>${Object.entries(d.unknown_labels).map(([k, v]) =>
+          `<tr><td>${esc(k)}</td><td class="mono">${esc(v)}</td></tr>`).join("")}</tbody></table></div>`
+    : "";
+
+  const fees = d.fee_table_found
+    ? `<p class="note">${d.fee_rows.length} fee row(s) read from the sub-table.</p>`
+    : `<div class="banner warn">No fee sub-table was found. An empty fee table is a real
+        answer (“this loan has no fees”); a table that was never found is not. Check the
+        document before continuing.</div>`;
+
+  out.innerHTML = `
+  <div class="panel">
+    <h2>2 · What the document says</h2>
+    ${banner}${validation}
+    <p class="note">
+      <span class="mono">${esc(d.filename || d.doc_id)}</span> ·
+      ${esc(d.method)} · ${d.byte_size} bytes ·
+      sha256 <span class="mono">${esc((d.sha256 || "").slice(0, 16))}…</span> ·
+      ${d.synthetic ? "synthetic" : "<b>REAL BORROWER DATA</b>"}
+    </p>
+    <table>
+      <thead><tr><th>Annex-A field</th><th>Value</th><th>Source</th></tr></thead>
+      <tbody>${(d.fields || []).map(fieldRow).join("")}</tbody>
+    </table>
+    ${fees}
+    <div class="row" style="margin-top:14px">
+      <button id="btn-fix" ${missing.length ? "" : "hidden"}>Save these values</button>
+      <button class="primary" id="btn-call" ${ready ? "" : "disabled"}>Create the call</button>
+      <span class="note" id="call-status"></span>
+    </div>
+    <!-- The result lands here, immediately below the button that produced it. -->
+    <div id="call-ready"></div>
+  </div>
+  ${unknown}
+  ${d.clauses.length ? `
+  <div class="panel">
+    <h2>3 · What she will actually hear</h2>
+    <p class="note">Generated by the delivery layer — one comprehension-critical value per
+      spoken segment. This is the text, in Hindi, that Rime will read.</p>
+    ${d.clauses.map((c) => `
+      <div class="clause">
+        <div class="title hi">${esc(c.title_hi)} <span class="note mono">${esc(c.clause_id)}</span></div>
+        <div class="text hi">${esc(c.text)}</div>
+        ${c.key_values.length ? `<div class="kv">${c.key_values.map((kv) =>
+          `${esc(kv.kind)}: <b>${esc(kv.raw_text)}</b> → <span class="hi">${esc(kv.spoken_text)}</span>`
+        ).join(" · ")}</div>` : ""}
+      </div>`).join("")}
+  </div>` : ""}
+  `;
+
+  const fix = $("#btn-fix");
+  if (fix) fix.addEventListener("click", saveCorrections);
+  $("#btn-call").addEventListener("click", createCall);
+
+  // A re-render (after supplying a missing field) must not offer to create a second call
+  // for a document that already has one.
+  if (createdCall && createdCall.docId === d.doc_id) {
+    $("#btn-call").textContent = "Call created";
+    $("#btn-call").disabled = true;
+    showCallReady(createdCall.callId);
+  }
+}
+
+async function saveCorrections() {
+  const values = {};
+  for (const el of document.querySelectorAll("input.fix")) {
+    if (el.value.trim()) values[el.dataset.label] = el.value.trim();
+  }
+  if (!Object.keys(values).length) return;
+
+  const r = await fetch(`/kfs/${encodeURIComponent(doc.doc_id)}`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ values, by: "intake page" }),
+  });
+  const body = await r.json();
+  if (!r.ok) { render(null, body.detail || `HTTP ${r.status}`); return; }
+  doc = body;
+  render(doc);
+}
+
+// One call per document, and one in flight at a time. Without these guards every click
+// created another call row: the button stayed live during the request AND after it
+// succeeded, and the result panel was inserted at the TOP of the page while the button is
+// at the bottom — so nothing visibly happened and the natural response was to click
+// again. Ten orphan calls, none of them started.
+let creating = false;
+// Keyed by doc_id, because render() re-runs after a correction and would otherwise
+// re-enable the button for a document that already has a call.
+let createdCall = null;   // {docId, callId}
+
+async function createCall() {
+  if (creating) return;
+  if (createdCall && createdCall.docId === doc.doc_id) {
+    showCallReady(createdCall.callId);
+    return;
+  }
+
+  creating = true;
+  const btn = $("#btn-call");
+  btn.disabled = true;
+  $("#call-status").textContent = "creating…";
+  try {
+    const r = await fetch("/calls", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ doc_id: doc.doc_id }),
+    });
+    const body = await r.json();
+    if (!r.ok) {
+      $("#call-status").textContent = body.detail || `HTTP ${r.status}`;
+      btn.disabled = false;
+      return;
+    }
+    createdCall = { docId: doc.doc_id, callId: body.id };
+    $("#call-status").textContent = "";
+    btn.textContent = "Call created";
+    showCallReady(body.id);
+  } catch (e) {
+    $("#call-status").textContent = String(e);
+    btn.disabled = false;
+  } finally {
+    creating = false;
+  }
+}
+
+function showCallReady(callId) {
+  const link = `${location.origin}/c/${callId}`;
+  // Rendered into a container that sits directly BELOW the button, and scrolled to, so
+  // the result appears where the person who clicked is actually looking.
+  $("#call-ready").innerHTML = `
+    <div class="banner ok" style="margin-top:14px">
+      <b>Call created.</b> It does not start by itself — open the link below.
+    </div>
+    <p class="row" style="margin-top:10px">
+      <input type="text" class="mono grow" readonly value="${esc(link)}"
+             onclick="this.select()">
+      <button onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(link)}')">Copy</button>
+    </p>
+    <p class="row">
+      <a href="${esc(link)}" target="_blank"><button class="primary">Open the borrower page →</button></a>
+      <a href="/?call=${esc(callId)}" target="_blank"><button>Watch the clause panel</button></a>
+      <a href="/record/${esc(callId)}" target="_blank"><button>Record</button></a>
+    </p>
+    <div id="agent-warning"></div>
+    <p class="note">
+      On a phone this must be served over <b>HTTPS</b>
+      (<code>cloudflared tunnel --url http://localhost:8000</code>). On plain http the
+      microphone is denied silently and teach-back never happens. On this machine
+      <code>localhost</code> already counts as secure.
+    </p>
+    <p class="note">Anyone with this link can join the call and read this KFS. There is no
+      authentication — fine for a demo, not for a deployment.</p>`;
+
+  $("#call-ready").scrollIntoView({ behavior: "smooth", block: "center" });
+  warnIfAgentMissing();
+}
+
+async function warnIfAgentMissing() {
+  // The commonest reason a call "does not start": `make serve` is running and
+  // `make agent` is not. Dispatch is explicit, so LiveKit accepts the dispatch and no
+  // worker ever claims it — the borrower waits on a screen that never changes. Say so
+  // here, before anyone walks over to a phone.
+  let health = {};
+  try {
+    health = await (await fetch("/health")).json();
+  } catch { return; }
+
+  const el = $("#agent-warning");
+  if (!el) return;
+  if (!health.livekit_configured) {
+    el.innerHTML = `<div class="banner bad" style="margin-top:10px">
+      <b>LiveKit is not configured.</b> Set LIVEKIT_URL, LIVEKIT_API_KEY and
+      LIVEKIT_API_SECRET in <code>.env</code> and restart <code>make serve</code>.
+      The borrower page cannot join a room without them.</div>`;
+    return;
+  }
+  el.innerHTML = `<div class="banner warn" style="margin-top:10px">
+    <b>Is <code>make agent</code> running?</b> The worker registers as
+    <code>${esc(health.agent_name || "")}</code> and takes explicit dispatches only, so
+    without it the borrower joins the room and nobody reads to her. Its terminal should
+    say <code>registered worker</code>.</div>`;
+}
+
+async function loadRecent() {
+  try {
+    const rows = await (await fetch("/kfs")).json();
+    $("#recent").innerHTML = rows.length ? `<table>
+      <thead><tr><th>Document</th><th>Read by</th><th>Uploader</th><th>Status</th><th>Data</th></tr></thead>
+      <tbody>${rows.map((d) => `<tr>
+        <td><a href="#" data-doc="${esc(d.doc_id)}">${esc(d.filename || d.doc_id)}</a>
+            <div class="note mono">${esc(d.sha256.slice(0, 12))}…</div></td>
+        <td>${esc(d.method)}</td><td>${esc(d.uploaded_by_role)}</td>
+        <td><span class="chip ${d.status === "confirmed" ? "parsed" : "missing"}">${esc(d.status)}</span></td>
+        <td>${d.synthetic ? "synthetic" : "<b>REAL</b>"}</td>
+      </tr>`).join("")}</tbody></table>` : `<p class="note">None yet.</p>`;
+
+    for (const a of document.querySelectorAll("#recent a[data-doc]")) {
+      a.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const r = await fetch(`/kfs/${encodeURIComponent(a.dataset.doc)}`);
+        if (r.ok) { doc = await r.json(); render(doc); window.scrollTo(0, 0); }
+      });
+    }
+  } catch { /* the list is a convenience, not the job */ }
+}
+
+checkRealDataAllowed();
+loadRecent();
+</script>
+</body>
+</html>

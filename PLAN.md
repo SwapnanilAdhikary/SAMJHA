@@ -523,7 +523,25 @@ most obviously sponsor-shaped thing you could bolt on. At 3 days, expect to cut 
 
 **The gap is small.** Test tonight, hour 2. Pivots pre-staged above. Discovering this on day 3 kills the build.
 **Scope creep.** Anything not clause delivery, teach-back, or consent gating costs points. Auth: cut.
-Multi-language: cut. Document upload UI: ship fixtures.
+Multi-language: cut. ~~Document upload UI: ship fixtures.~~
+
+> **Amended, post-deadline.** The document-upload cut is **reversed and shipped**: `POST /kfs`
+> takes a PDF or `.docx`, `/intake` is the officer's review desk, and `/c/{call_id}` is the
+> borrower's near-textless page over a LiveKit leg. The KFS→agent handoff is now per-room
+> (`GET /calls/{call_id}/kfs`) rather than the process-global `SAMJHA_KFS`, which could not
+> serve two borrowers at once. **Auth is still cut** — a call link is a bearer capability.
+> **Multi-language is still cut, and is now known to be vendor-blocked**: Coda is the only
+> Rime model with Hindi. **Vision/OCR is not built**: documents are read from the table grid,
+> so a photographed KFS is refused rather than guessed at; `kfs/extract.read_tables()` is the
+> seam it would plug into.
+>
+> Three bugs found while building it, each of which faked the product's central claim:
+> a clause with no synthesized audio reported every key value as **heard** (`0.0 <= 0.0`),
+> which is also what the TTS-failure path produced; a real call's consent decision landed in
+> the record as **PENDING** with the callback flag clear, because the FSM writes
+> `granted`/`human_callback` and the store reads `decision`/`flagged_for_callback`; and
+> `synthetic_data` was hardcoded `True` inside the hashed payload. The demo fixture hid the
+> second and third by writing canonical field names directly.
 **The state machine isn't legible on the recording.** Design the panel for a compressed video, not a desk.
 **Honesty gap.** No claimed PSTN result we didn't measure; no claimed human comprehension where we measured ASR.
 Rime's docs contradict themselves in three places — **do not cite them as internally consistent** in the writeup.

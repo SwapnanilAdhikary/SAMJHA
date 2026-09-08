@@ -31,9 +31,10 @@ import sounddevice as sd
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from agent import teachback  # noqa: E402
-from agent.consent_fsm import ConsentFSM  # noqa: E402
+from agent.consent_fsm import ConsentFSM, jsonl_sink  # noqa: E402
 from agent.rushed_consent import evaluate  # noqa: E402
 from agent.session import ulaw_to_pcm16  # noqa: E402
+from api import events  # noqa: E402
 from delivery import rime_ws3  # noqa: E402
 from kfs.build_clauses import build_clauses  # noqa: E402
 from kfs.schema import KFS  # noqa: E402
@@ -159,7 +160,21 @@ async def main() -> int:
     say(f"{DIM}ENTER while it speaks = interrupt.  ENTER while it listens = done.{RESET}\n")
     input(f"{BOLD}Press ENTER to take the call...{RESET}")
 
-    fsm = ConsentFSM(clauses, call_id=f"talk-{int(time.time())}")
+    # With a sink, this CLI call shows up in the web panel and produces a real consent
+    # record. Without one it was terminal output only: the single working end-to-end path
+    # in the project was invisible to the UI, the DB and the record hasher.
+    call_id = f"talk-{int(time.time())}"
+    fsm = ConsentFSM(clauses, call_id=call_id, sink=jsonl_sink(call_id))
+
+    # Register the clauses up front so the panel shows the whole KFS greyed out before
+    # delivery begins. Durations are 0 here because nothing has been synthesized yet, and
+    # Clause.heard_key_values treats a segment with no audio as not heard — so no value
+    # reads as heard before it is spoken.
+    for ordinal, clause in enumerate(clauses):
+        events.emit(call_id, "clause_registered", ordinal=ordinal,
+                    **events.clause_payload(clause))
+
+    say(f"{DIM}watch it: http://127.0.0.1:8000/?call={call_id}{RESET}")
     first_clause_started = time.monotonic()
 
     for c in clauses:

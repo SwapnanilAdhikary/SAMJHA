@@ -106,11 +106,28 @@ class Clause:
         A value counts as heard only if the ENTIRE segment carrying it finished. A value
         cut off halfway was not communicated, and treating it as heard is exactly the
         failure this product exists to prevent.
+
+        A segment with NO AUDIO has not been heard either, and that guard is load-bearing
+        rather than defensive. An unsynthesized segment has duration 0, so without it the
+        arithmetic reads `0.0 <= 0.0` — true — and every value in a clause that never
+        played reports as heard. Two real paths reach exactly that state:
+
+          * TTS failed for the clause, so `seg.audio` is still empty. `ConsentFSM.
+            delivery_dropped` sets heard_through_s = 0.0 and its docstring promises "heard
+            NOTHING, never heard everything"; this is what keeps that promise.
+          * the clause has been registered for the panel but not yet spoken, which is how
+            the whole KFS is shown greyed out before delivery begins.
+
+        Audio arrives as a prefix — `deliver_clause` synthesizes in order and stops at a
+        barge-in — so an unsynthesized segment never sits before a synthesized one and the
+        cumulative end times stay honest.
         """
         played = self.heard_through_s if played_s is None else played_s
         out = []
         for i, seg in enumerate(self.segments):
-            if seg.key_value is not None and self.segment_end_time(i) <= played + 1e-9:
+            if seg.key_value is None or not seg.audio:
+                continue
+            if self.segment_end_time(i) <= played + 1e-9:
                 out.append(seg.key_value)
         return out
 

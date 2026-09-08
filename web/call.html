@@ -1,0 +1,556 @@
+<!doctype html>
+<!--
+  SAMJHA — THE BORROWER'S PAGE. Near-textless by design.
+
+  She has low reading fluency. A UI that explains itself in written Hindi has failed, so
+  this page has no file input, no text input, no navigation and no menu. One green circle.
+  Everything it needs to say, it says ALOUD, in the same Rime voice (coda/taru/hi) that is
+  about to read her loan.
+
+  What it does show in writing is DIGITS. ₹1,04,596 at 44px is legible to someone who
+  cannot read a sentence — a digit is not reading. Words are small and few; numbers are
+  large.
+
+  ── The three mobile traps this page exists to survive ─────────────────────────────
+  1. AUTOPLAY. Mobile Safari grants a gesture ONCE, synchronously. If the tap handler
+     awaits anything before starting audio, the gesture is spent and the borrower gets a
+     connected, silent call that looks perfectly fine. So the handler unlocks the
+     AudioContext and starts the prompt element FIRST, then does the async work.
+  2. getUserMedia NEEDS A SECURE CONTEXT. On plain http from a phone the microphone is
+     denied with no dialog and no error she could read: the agent talks, teach-back never
+     happens, and it looks like a broken product. Checked up front and said out loud.
+  3. TrackSubscribed. Connecting and enabling the mic is not enough — the agent's audio
+     track has to be attached to an element, and `room.startAudio()` called if the browser
+     still blocks playback. Miss this and the call is silent.
+
+  Also handled: iOS suspending the microphone when the screen locks or the tab is
+  backgrounded (the FSM correctly leaves the interrupted clause PARTIALLY_HEARD).
+
+  Clause state is driven by the EXISTING /calls/{id}/live websocket and the existing
+  clause_state payload — the same event stream the judge panel reads. No new server-side
+  event shape.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0b0d12">
+<title>SAMJHA</title>
+<style>
+  :root {
+    --bg:#0b0d12; --ink:#f2f5fb; --dim:#98a1b6; --line:#242a38;
+    --go:#1db954; --go-deep:#0f7a37; --amber:#ffb020; --red:#ff5c5c; --heard:#3ddc84;
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; }
+  body {
+    margin:0; background:var(--bg); color:var(--ink); overflow:hidden;
+    font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    display:flex; flex-direction:column;
+    /* Never let the one control sit under a phone's home indicator. */
+    padding:env(safe-area-inset-top) env(safe-area-inset-right)
+            env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  /* No webfont: a demo must not depend on fonts.googleapis.com being reachable. */
+  .hi { font-family:"Noto Sans Devanagari","Nirmala UI","Kohinoor Devanagari",
+        "Mangal",system-ui,sans-serif; }
+
+  .screen { flex:1; display:none; flex-direction:column; align-items:center;
+            justify-content:center; text-align:center; padding:22px; gap:18px; }
+  .screen.on { display:flex; }
+
+  .loan { display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .glyph { width:96px; height:96px; }
+  /* Digits, not sentences. This is the part she can read. */
+  .amount { font-size:44px; font-weight:800; letter-spacing:-.02em; line-height:1.05; }
+  .kind { font-size:17px; color:var(--dim); }
+
+  /* One control, ~40% of the screen, no text inside it. */
+  .big {
+    width:min(58vw,240px); aspect-ratio:1; border-radius:50%; border:none;
+    background:var(--go); color:#04120a; cursor:pointer; display:grid;
+    place-items:center; box-shadow:0 10px 40px rgba(29,185,84,.35);
+    transition:transform .12s ease;
+  }
+  .big:active { transform:scale(.95); }
+  .big.stop { background:var(--red); box-shadow:0 10px 40px rgba(255,92,92,.3); }
+  .big.amber { background:var(--amber); box-shadow:0 10px 40px rgba(255,176,32,.3);
+               color:#241700; }
+  .big svg { width:44%; height:44%; }
+  .pulse { animation:pulse 1.9s ease-out infinite; }
+  @keyframes pulse {
+    0% { box-shadow:0 0 0 0 rgba(29,185,84,.55); }
+    100% { box-shadow:0 0 0 44px rgba(29,185,84,0); }
+  }
+  @media (prefers-reduced-motion:reduce) { .pulse { animation:none; } }
+
+  .say { font-size:19px; max-width:22ch; }
+  .small { font-size:14px; color:var(--dim); max-width:26ch; }
+
+  /* In-call: the clause being read, as a ring of arcs rather than a list of words. */
+  #incall { justify-content:space-between; }
+  .arcs { display:flex; gap:7px; flex-wrap:wrap; justify-content:center; max-width:320px; }
+  .arc { width:26px; height:8px; border-radius:6px; background:#2b3243;
+         transition:background .35s ease; }
+  .arc.active { background:var(--amber); }
+  .arc.heard { background:#2f6f4a; }
+  .arc.understood { background:var(--heard); }
+  .arc.partial { background:var(--red); }
+
+  .now { display:flex; flex-direction:column; gap:10px; align-items:center; }
+  .now .title { font-size:22px; font-weight:700; }
+  .value { font-size:40px; font-weight:800; letter-spacing:-.02em; }
+  .value.pending { color:var(--dim); }
+  .bar { width:min(78vw,320px); height:12px; background:#202634; border-radius:8px;
+         overflow:hidden; }
+  .bar > i { display:block; height:100%; width:0; background:var(--amber);
+             transition:width .18s linear; }
+
+  .listening .now .title { color:var(--amber); }
+  .mic-ring { width:74px; height:74px; border-radius:50%; background:#202634;
+              display:grid; place-items:center; }
+  .mic-ring.live { background:var(--amber); }
+  .mic-ring svg { width:36px; height:36px; }
+
+  .stack { display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .ok  { color:var(--heard); }
+  .bad { color:var(--amber); }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+
+<!-- 0 · READY. One tap. The tap is also the audio-unlock gesture. -->
+<section class="screen on" id="ready">
+  <div class="loan">
+    <div id="glyph"></div>
+    <div class="amount" id="amount">—</div>
+    <div class="kind hi" id="kind"></div>
+  </div>
+  <button class="big pulse" id="btn-take" aria-label="Take the call">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.5.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.4 21 3 13.6 3 4.5 3 3.9 3.4 3.5 4 3.5h3.4c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.5.1.4 0 .8-.2 1l-2.2 2.3z"/></svg>
+  </button>
+  <div class="say hi" id="ready-say">सुनने के लिए हरा बटन दबाइए</div>
+</section>
+
+<!-- 1 · MICROPHONE -->
+<section class="screen" id="mic">
+  <div class="mic-ring live"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V22h2v-3.1A7 7 0 0 0 19 12h-2z"/></svg></div>
+  <div class="say hi" id="mic-say">माइक चालू करने की अनुमति दीजिए</div>
+  <button class="big amber" id="btn-mic" aria-label="Allow the microphone">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V22h2v-3.1A7 7 0 0 0 19 12h-2z"/></svg>
+  </button>
+  <!-- "Allow" in English on purpose: it is the literal word on the OS dialog. -->
+  <div class="small">Allow</div>
+</section>
+
+<!-- 2 · IN CALL -->
+<section class="screen" id="incall">
+  <div class="arcs" id="arcs"></div>
+
+  <div class="now">
+    <div class="title hi" id="clause-title">…</div>
+    <div class="value hi pending" id="clause-value"></div>
+    <div class="bar"><i id="clause-bar"></i></div>
+    <div class="small hi" id="clause-hint"></div>
+  </div>
+
+  <div class="stack">
+    <div class="mic-ring" id="mic-ring"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V22h2v-3.1A7 7 0 0 0 19 12h-2z"/></svg></div>
+    <!-- Barge-in by TOUCH as well as by voice. The VAD already interrupts on speech; a
+         borrower who does not know she may interrupt needs to see that she can. -->
+    <button class="big stop" id="btn-stop" aria-label="Stop and ask again">
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+    </button>
+    <div class="small hi">रोकने के लिए दबाइए</div>
+  </div>
+</section>
+
+<!-- 3 · OUTCOME -->
+<section class="screen" id="done">
+  <div id="done-glyph"></div>
+  <div class="say hi" id="done-say"></div>
+  <div class="small hi" id="done-detail"></div>
+</section>
+
+<!-- 4 · BLOCKED (insecure context: the microphone cannot work here) -->
+<section class="screen" id="blocked">
+  <div class="big amber" style="pointer-events:none">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 1 21h22L12 2zm1 14h-2v2h2v-2zm0-8h-2v6h2V8z"/></svg>
+  </div>
+  <div class="say hi" id="blocked-say">माइक काम नहीं करेगा</div>
+  <div class="small" id="blocked-detail"></div>
+</section>
+
+<audio id="prompt" playsinline></audio>
+<audio id="agent" autoplay playsinline></audio>
+
+<script src="/vendor/livekit-client.umd.min.js"></script>
+<script>
+const $ = (s) => document.querySelector(s);
+const CALL_ID = decodeURIComponent(location.pathname.replace(/^\/c\//, ""));
+
+const STATE_CLASS = {
+  UNHEARD: "", PARTIALLY_HEARD: "partial", HEARD: "heard",
+  TEACH_BACK_FAIL: "partial", UNDERSTOOD: "understood",
+};
+
+// What each clause is about, as a glyph. Keys are kfs/build_clauses.py's clause ids —
+// all eleven of them, plus a fallback, because a missing icon is a blank screen.
+const GLYPHS = {
+  identity: "M4 7h16v10H4z M4 11h16", sanctioned: "M7 15h10M7 11h10M12 4v16",
+  tenure: "M12 6v6l4 2 M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z",
+  emi: "M3 8h18v10H3z M3 12h18", interest_rate: "M5 19 19 5 M7 7h.01 M17 17h.01",
+  rate_reset: "M4 12a8 8 0 1 1 3 6 M4 12H2m2 0V9",
+  fees: "M12 2 2 7l10 5 10-5-10-5z M2 17l10 5 10-5", apr: "M5 19 19 5 M8 8h.01 M16 16h.01",
+  total_repayment: "M4 6h16v12H4z M8 10h8M8 14h5",
+  prepayment: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z M12 7v5l3 3",
+  grievance: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
+  _: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z",
+};
+
+function icon(id, size = 96, colour = "#f2f5fb") {
+  return `<svg class="glyph" width="${size}" height="${size}" viewBox="0 0 24 24"
+    fill="none" stroke="${colour}" stroke-width="1.6" stroke-linecap="round"
+    aria-hidden="true"><path d="${GLYPHS[id] || GLYPHS._}"/></svg>`;
+}
+
+function show(id) {
+  for (const s of document.querySelectorAll(".screen")) s.classList.toggle("on", s.id === id);
+}
+
+// ------------------------------------------------------------------ speaking
+
+// Pre-rendered Rime prompts, with the browser's own voice as the fallback so a missing
+// WAV degrades instead of leaving her in silence. See web/prompts.py.
+const SPOKEN = {
+  ready: "नमस्ते। आपके लोन की ज़रूरी जानकारी तैयार है। सुनने के लिए हरा बटन दबाइए।",
+  mic: "अब माइक चालू करने की अनुमति दीजिए। Allow दबाइए।",
+  mic_denied: "माइक के बिना हम आपकी बात रिकॉर्ड नहीं कर सकते। कृपया फिर से कोशिश कीजिए।",
+  insecure: "यह पेज सुरक्षित नहीं है, इसलिए माइक काम नहीं करेगा। कृपया अपने प्रतिनिधि को बताइए।",
+  connecting: "जोड़ रहे हैं। कृपया थोड़ा इंतज़ार कीजिए।",
+  waiting_agent: "प्रतिनिधि जुड़ रहे हैं। लाइन पर बने रहिए।",
+};
+
+let audioUnlocked = false;
+
+function unlockAudio() {
+  // Called SYNCHRONOUSLY from the first tap. Mobile Safari grants the gesture once, and
+  // an await before this point spends it — leaving a connected, silent call.
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  for (const el of [$("#prompt"), $("#agent")]) {
+    el.muted = true;
+    el.play().catch(() => {});
+    el.pause();
+    el.muted = false;
+    el.currentTime = 0;
+  }
+}
+
+function say(key) {
+  const el = $("#prompt");
+  el.onerror = null;
+  el.src = `/prompts/${key}.wav`;
+  const spoken = el.play();
+  if (spoken && spoken.catch) spoken.catch(() => speak(SPOKEN[key]));
+  // A 404 (prompts not synthesized) surfaces as an error event, not a rejection.
+  el.onerror = () => speak(SPOKEN[key]);
+}
+
+function speak(text) {
+  if (!text || !window.speechSynthesis) return;
+  try {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "hi-IN";
+    speechSynthesis.speak(u);
+  } catch { /* silence is the last resort, never a crash */ }
+}
+
+// ------------------------------------------------------------------ the loan
+
+async function loadLoan() {
+  try {
+    const r = await fetch(`/calls/${encodeURIComponent(CALL_ID)}/kfs`);
+    if (!r.ok) return null;
+    const body = await r.json();
+    const k = body.kfs;
+    $("#glyph").innerHTML = icon("sanctioned");
+    // Indian 2-2-3 grouping, which is how a KFS prints it and how she reads it.
+    $("#amount").textContent = "₹" + inr(k.sanctioned_amount_inr);
+    $("#kind").textContent = loanTypeHi(k.loan_type);
+    return body;
+  } catch { return null; }
+}
+
+function inr(v) {
+  const n = String(v).split(".")[0].replace(/[^\d]/g, "");
+  if (n.length <= 3) return n;
+  const head = n.slice(0, -3), tail = n.slice(-3);
+  return head.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + "," + tail;
+}
+
+// Mirrors kfs/build_clauses.py's LOAN_TYPE_HI. An unmapped type shows in English inside
+// a Hindi line, which is what a lender's own agent does on a real call.
+const LOAN_TYPE_HI = {
+  "Two-Wheeler Loan": "दोपहिया वाहन लोन", "Personal Loan": "व्यक्तिगत लोन",
+  "Consumer Durable Loan": "घरेलू सामान लोन", "Gold Loan": "सोने पर लोन",
+  "Small Business Loan": "छोटे व्यापार का लोन",
+};
+const loanTypeHi = (t) => LOAN_TYPE_HI[t] || t;
+
+// ------------------------------------------------------------------ clause state
+
+const clauses = new Map();   // clause_id -> {ordinal, title_hi, state, ...}
+
+function renderArcs() {
+  const ordered = [...clauses.values()].sort((a, b) => (a.ordinal ?? 0) - (b.ordinal ?? 0));
+  $("#arcs").innerHTML = ordered.map((c) =>
+    `<div class="arc ${c.active ? "active" : STATE_CLASS[c.state] || ""}"></div>`).join("");
+}
+
+function applyClause(ev) {
+  const id = ev.clause_id;
+  if (!id) return;
+  agentArrived();   // the agent is registering clauses, so it is on the line
+  const prev = clauses.get(id) || {};
+  const c = { ...prev, ...ev };
+  clauses.set(id, c);
+
+  if (ev.active) {
+    for (const [k, v] of clauses) if (k !== id) v.active = false;
+    $("#clause-title").textContent = c.title_hi || "";
+    $("#clause-hint").textContent = "";
+    $("#incall").classList.remove("listening");
+  }
+
+  // The number currently being spoken, big. Grey until its segment has finished playing —
+  // "heard" here means played out of the speaker, which is the whole product.
+  const kvs = c.key_values || [];
+  const pending = kvs.find((k) => !k.heard) || kvs[kvs.length - 1];
+  const val = $("#clause-value");
+  if (pending) {
+    val.textContent = pending.raw_text || "";
+    val.classList.toggle("pending", !pending.heard);
+  } else {
+    val.textContent = "";
+  }
+
+  const total = c.total_duration_s || 0;
+  const heard = c.heard_through_s || 0;
+  $("#clause-bar").style.width = total ? `${Math.min(100, (heard / total) * 100)}%` : "0%";
+
+  if (c.state === "PARTIALLY_HEARD") {
+    // Say it, do not write it: the clause will be re-read from the start.
+    $("#clause-hint").textContent = "यह बात फिर से सुनाई जाएगी";
+  } else if (c.state === "TEACH_BACK_FAIL") {
+    $("#clause-hint").textContent = "कोई बात नहीं। फिर से सुनिए।";
+  }
+
+  renderArcs();
+}
+
+function onEvent(ev) {
+  switch (ev.type) {
+    case "clause_registered":
+    case "clause_state":
+      applyClause(ev);
+      break;
+    case "teach_back":
+      $("#incall").classList.add("listening");
+      $("#mic-ring").classList.add("live");
+      $("#clause-hint").textContent = ev.passed
+        ? "ठीक है" : "कोई बात नहीं। फिर से सुनिए।";
+      break;
+    case "consent":
+      finish(ev);
+      break;
+    case "call_end":
+      if ($("#done").classList.contains("on") === false) finish(null);
+      break;
+  }
+}
+
+function finish(ev) {
+  const granted = ev && ev.decision === "GRANTED";
+  $("#done-glyph").innerHTML = granted
+    ? icon("prepayment", 110, "#3ddc84")
+    : icon("grievance", 110, "#ffb020");
+  $("#done-say").textContent = granted
+    ? "आपकी सहमति दर्ज हो गई है"
+    : "अभी सहमति दर्ज नहीं हुई";
+  // Amber, not red. If refusal looks like rejection, every borrower who sees one learns
+  // that the honest path is the punished path.
+  $("#done-say").className = "say hi " + (granted ? "ok" : "bad");
+  $("#done-detail").textContent = granted ? "" : "हमारा प्रतिनिधि आपको फिर कॉल करेगा";
+  show("done");
+}
+
+// ------------------------------------------------------------------ the call
+
+let room = null;
+
+async function connect() {
+  say("connecting");
+
+  const r = await fetch(`/calls/${encodeURIComponent(CALL_ID)}/token`);
+  if (!r.ok) {
+    const body = await r.json().catch(() => ({}));
+    $("#blocked-say").textContent = "कॉल जोड़ नहीं सके";
+    $("#blocked-detail").textContent = body.detail || `HTTP ${r.status}`;
+    show("blocked");
+    return;
+  }
+  const { url, token } = await r.json();
+
+  const LK = window.LivekitClient;
+  room = new LK.Room({ adaptiveStream: false, dynacast: false });
+
+  // TRAP 3: without this the call is silent. Connecting and publishing the microphone is
+  // not enough — the agent's track has to be attached to an element, and playback may
+  // still be blocked until startAudio() is called from the user's gesture context.
+  room.on(LK.RoomEvent.TrackSubscribed, (track) => {
+    if (track.kind === LK.Track.Kind.Audio) {
+      track.attach($("#agent"));
+      $("#agent").play().catch(() => {});
+    }
+  });
+  room.on(LK.RoomEvent.AudioPlaybackStatusChanged, () => {
+    if (!room.canPlaybackAudio) room.startAudio().catch(() => {});
+  });
+  room.on(LK.RoomEvent.ParticipantConnected, () => {
+    $("#clause-hint").textContent = "";
+  });
+  room.on(LK.RoomEvent.Disconnected, () => { if (!clauses.size) say("waiting_agent"); });
+
+  await room.connect(url, token);
+  await room.localParticipant.setMicrophoneEnabled(true);
+  if (!room.canPlaybackAudio) await room.startAudio().catch(() => {});
+
+  // Explicit dispatch: the worker registers with an agent_name and takes dispatches only,
+  // so it never joins rooms belonging to other apps sharing these credentials.
+  fetch(`/calls/${encodeURIComponent(CALL_ID)}/dispatch`, { method: "POST" })
+    .then(async (res) => {
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        noAgent(body.detail || `dispatch failed (HTTP ${res.status})`);
+      }
+    })
+    .catch((e) => noAgent(String(e)));
+
+  show("incall");
+  armAgentTimeout();
+}
+
+// LiveKit ACCEPTS a dispatch even when no worker is registered — the job is simply never
+// claimed. So the happy path and "nobody is running `make agent`" look identical from
+// here: connected, silent, forever. Time it out and say so, rather than leaving her on a
+// screen that never changes.
+const AGENT_TIMEOUT_MS = 15000;
+let agentTimer = null;
+
+function armAgentTimeout() {
+  clearTimeout(agentTimer);
+  agentTimer = setTimeout(() => {
+    if (!clauses.size) noAgent("no agent joined this call");
+  }, AGENT_TIMEOUT_MS);
+}
+
+function agentArrived() {
+  clearTimeout(agentTimer);
+  agentTimer = null;
+}
+
+function noAgent(detail) {
+  if (clauses.size) return;   // it did arrive; nothing to report
+  $("#incall").classList.remove("listening");
+  $("#clause-title").textContent = "प्रतिनिधि नहीं जुड़े";
+  $("#clause-value").textContent = "";
+  $("#clause-hint").textContent = "कृपया अपने प्रतिनिधि को बताइए";
+  say("waiting_agent");
+  // For whoever is testing rather than borrowing. She cannot read it; they can.
+  const note = document.createElement("div");
+  note.className = "small";
+  note.style.cssText = "color:#ffb020;max-width:30ch";
+  note.textContent = `${detail} — is \`make agent\` running? It must print `
+    + `"registered worker" before a call can start.`;
+  $("#incall").appendChild(note);
+}
+
+function watch() {
+  // The SAME event stream the judge panel reads. No borrower-specific server events.
+  const proto = location.protocol === "https:" ? "wss" : "ws";
+  const ws = new WebSocket(`${proto}://${location.host}/calls/${encodeURIComponent(CALL_ID)}/live`);
+  ws.onmessage = (m) => {
+    const ev = JSON.parse(m.data);
+    if (ev.type === "hello") return;
+    onEvent(ev);
+  };
+  // Reconnect: a dropped socket must not freeze her screen mid-call.
+  ws.onclose = () => setTimeout(watch, 1200);
+}
+
+// ------------------------------------------------------------------ boot
+
+$("#btn-take").addEventListener("click", async () => {
+  unlockAudio();          // SYNCHRONOUS, before any await. Trap 1.
+  say("ready");
+
+  // Trap 2: on plain http from a phone getUserMedia is denied with no dialog at all.
+  if (!window.isSecureContext) {
+    $("#blocked-detail").textContent =
+      `This page is on ${location.protocol}//. The microphone only works over HTTPS or on `
+      + `localhost, so teach-back cannot happen. Serve it through a tunnel: `
+      + `cloudflared tunnel --url http://localhost:8000`;
+    show("blocked");
+    say("insecure");
+    return;
+  }
+
+  const granted = await navigator.mediaDevices?.getUserMedia({ audio: true })
+    .then((s) => { s.getTracks().forEach((t) => t.stop()); return true; })
+    .catch(() => false);
+
+  if (!granted) { show("mic"); say("mic"); return; }
+  await connect();
+});
+
+$("#btn-mic").addEventListener("click", async () => {
+  const granted = await navigator.mediaDevices?.getUserMedia({ audio: true })
+    .then((s) => { s.getTracks().forEach((t) => t.stop()); return true; })
+    .catch(() => false);
+  if (!granted) { say("mic_denied"); return; }
+  await connect();
+});
+
+$("#btn-stop").addEventListener("click", () => {
+  // Touch barge-in, alongside the VAD's voice barge-in. One value, no parameters: this is
+  // a channel into the agent process, so it accepts exactly one thing and nothing else.
+  try {
+    room?.localParticipant.publishData(
+      new TextEncoder().encode(JSON.stringify({ t: "barge_in" })), { reliable: true });
+  } catch { /* the voice path still works */ }
+  $("#agent").pause();
+  $("#clause-hint").textContent = "रुक गया";
+});
+
+// iOS suspends the microphone when the screen locks or the tab is backgrounded. The FSM
+// correctly leaves the interrupted clause PARTIALLY_HEARD, so it will be re-read; tell
+// her that rather than letting the screen look frozen.
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden || !room) return;
+  room.startAudio().catch(() => {});
+  room.localParticipant.setMicrophoneEnabled(true).catch(() => {});
+});
+
+loadLoan().then((body) => {
+  if (!body) {
+    $("#amount").textContent = "";
+    $("#kind").textContent = "";
+    $("#ready-say").textContent = "इस कॉल के लिए कोई दस्तावेज़ नहीं मिला";
+  }
+});
+watch();
+</script>
+</body>
+</html>

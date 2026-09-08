@@ -33,8 +33,33 @@ CREATE TABLE IF NOT EXISTS calls (
     mode        TEXT NOT NULL DEFAULT 'live',   -- 'live' | 'demo'
     label       TEXT NOT NULL DEFAULT '',
     kfs_ref     TEXT NOT NULL DEFAULT '',
-    provider    TEXT NOT NULL DEFAULT '{}'      -- JSON: the active TTS/STT config
+    provider    TEXT NOT NULL DEFAULT '{}',     -- JSON: the active TTS/STT config
+    doc_id      TEXT NOT NULL DEFAULT '',       -- documents.doc_id; '' = no document
+    -- 0 forever once a call carries a document. There is deliberately NO setter: see
+    -- allow_fallback() below.
+    fallback_allowed INTEGER NOT NULL DEFAULT 1
 );
+
+CREATE TABLE IF NOT EXISTS documents (
+    doc_id           TEXT PRIMARY KEY,
+    created_at       REAL NOT NULL,
+    filename         TEXT NOT NULL DEFAULT '',
+    sha256           TEXT NOT NULL,
+    media_type       TEXT NOT NULL DEFAULT '',
+    byte_size        INTEGER NOT NULL DEFAULT 0,
+    -- How the facts were obtained: 'pdf_table' | 'docx_table'. Named, not inferred, so a
+    -- consent record can state its own provenance. A future 'vision' reader lands here.
+    method           TEXT NOT NULL DEFAULT '',
+    -- An UPLOADER ASSERTION, never a determination. Guessing whether a document contains
+    -- a real person's data is exactly the guess this product must not make.
+    synthetic        INTEGER NOT NULL DEFAULT 1,
+    uploaded_by_role TEXT NOT NULL DEFAULT '',  -- lender_system | branch_helper | borrower
+    status           TEXT NOT NULL DEFAULT 'draft',  -- 'draft' | 'confirmed'
+    kfs              TEXT,                      -- KFS.model_dump_json(), NULL until complete
+    report           TEXT NOT NULL DEFAULT '{}',     -- JSON: per-field read status
+    corrections      TEXT NOT NULL DEFAULT '[]'      -- JSON: [{label,value,by,at}]
+);
+CREATE INDEX IF NOT EXISTS documents_by_sha ON documents(sha256);
 
 CREATE TABLE IF NOT EXISTS clauses (
     call_id          TEXT NOT NULL,
@@ -106,21 +131,137 @@ def connect(path: Path | str | None = None) -> sqlite3.Connection:
     conn = sqlite3.connect(str(p), check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
+    _migrate(conn)
     return conn
+
+
+# Columns added after the first release. `CREATE TABLE IF NOT EXISTS` is a no-op on an
+# existing database, so a DB written before document upload existed keeps its old `calls`
+# shape and every SELECT naming a new column fails. Adding them here means an existing
+# data/samjha.db keeps working instead of having to be deleted.
+_ADDED_COLUMNS = {
+    "calls": (
+        ("doc_id", "TEXT NOT NULL DEFAULT ''"),
+        ("fallback_allowed", "INTEGER NOT NULL DEFAULT 1"),
+    ),
+}
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    for table, columns in _ADDED_COLUMNS.items():
+        have = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+        for name, decl in columns:
+            if name not in have:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {decl}")
+    conn.commit()
 
 
 # --------------------------------------------------------------------------- calls
 
 
 def create_call(conn: sqlite3.Connection, call_id: str, *, mode: str = "live",
-                label: str = "", kfs_ref: str = "", provider: dict | None = None) -> dict:
+                label: str = "", kfs_ref: str = "", provider: dict | None = None,
+                doc_id: str = "") -> dict:
+    """Create a call row.
+
+    A call that carries a document has `fallback_allowed = 0` from birth, and nothing can
+    set it back. Replaying `api/demo.py`'s scripted fixture over a call bound to a real
+    uploaded loan would produce a sha256-sealed consent record whose clauses describe a
+    DIFFERENT loan than its own provenance block names — the fixture reads ₹1,25,000 at
+    18.5% no matter what the document says. The fixture path stays for bare call ids,
+    which is what it was built for.
+    """
     conn.execute(
-        "INSERT OR IGNORE INTO calls(id, created_at, mode, label, kfs_ref, provider)"
-        " VALUES (?,?,?,?,?,?)",
-        (call_id, time.time(), mode, label, kfs_ref, json.dumps(provider or {}, ensure_ascii=False)),
+        "INSERT OR IGNORE INTO calls(id, created_at, mode, label, kfs_ref, provider,"
+        " doc_id, fallback_allowed) VALUES (?,?,?,?,?,?,?,?)",
+        (call_id, time.time(), mode, label, kfs_ref,
+         json.dumps(provider or {}, ensure_ascii=False), doc_id, 0 if doc_id else 1),
     )
     conn.commit()
     return get_call(conn, call_id)
+
+
+def allow_fallback(conn: sqlite3.Connection, call_id: str) -> bool:
+    """May this call degrade to the built-in demo fixture?
+
+    Read-only on purpose. There is no `set_fallback_allowed`: the answer is fixed by
+    whether the call was created with a document, so no later code path can talk itself
+    into replaying a fixture over a real borrower's loan.
+    """
+    row = conn.execute("SELECT fallback_allowed FROM calls WHERE id=?", (call_id,)).fetchone()
+    return bool(row["fallback_allowed"]) if row is not None else True
+
+
+# ----------------------------------------------------------------------- documents
+
+
+def put_document(conn: sqlite3.Connection, doc_id: str, *, sha256: str, filename: str = "",
+                 media_type: str = "", byte_size: int = 0, method: str = "",
+                 synthetic: bool = True, uploaded_by_role: str = "",
+                 kfs_json: str | None = None, report: dict | None = None,
+                 corrections: list | None = None, status: str = "draft") -> dict:
+    conn.execute(
+        "INSERT OR REPLACE INTO documents(doc_id, created_at, filename, sha256, media_type,"
+        " byte_size, method, synthetic, uploaded_by_role, status, kfs, report, corrections)"
+        " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        (doc_id, time.time(), filename, sha256, media_type, byte_size, method,
+         1 if synthetic else 0, uploaded_by_role, status, kfs_json,
+         json.dumps(report or {}, ensure_ascii=False),
+         json.dumps(corrections or [], ensure_ascii=False)),
+    )
+    conn.commit()
+    return get_document(conn, doc_id)
+
+
+def get_document(conn: sqlite3.Connection, doc_id: str) -> dict | None:
+    row = conn.execute("SELECT * FROM documents WHERE doc_id=?", (doc_id,)).fetchone()
+    if row is None:
+        return None
+    d = dict(row)
+    d["synthetic"] = bool(d["synthetic"])
+    d["report"] = json.loads(d["report"] or "{}")
+    d["corrections"] = json.loads(d["corrections"] or "[]")
+    return d
+
+
+def update_document(conn: sqlite3.Connection, doc_id: str, **fields) -> dict | None:
+    """Patch named columns. JSON-shaped values are encoded here, not by the caller."""
+    if not fields:
+        return get_document(conn, doc_id)
+
+    allowed = {"status", "kfs", "report", "corrections", "synthetic", "uploaded_by_role",
+               "method", "filename"}
+    unknown = set(fields) - allowed
+    if unknown:
+        raise ValueError(f"cannot update {sorted(unknown)} on a document")
+
+    sets, values = [], []
+    for key, value in fields.items():
+        sets.append(f"{key}=?")
+        if key in ("report", "corrections"):
+            values.append(json.dumps(value, ensure_ascii=False))
+        elif key == "synthetic":
+            values.append(1 if value else 0)
+        else:
+            values.append(value)
+    values.append(doc_id)
+
+    conn.execute(f"UPDATE documents SET {', '.join(sets)} WHERE doc_id=?", values)
+    conn.commit()
+    return get_document(conn, doc_id)
+
+
+def list_documents(conn: sqlite3.Connection, limit: int = 50) -> list[dict]:
+    rows = conn.execute(
+        "SELECT doc_id, created_at, filename, sha256, media_type, method, synthetic,"
+        " uploaded_by_role, status FROM documents ORDER BY created_at DESC LIMIT ?", (limit,)
+    ).fetchall()
+    out = []
+    for r in rows:
+        d = dict(r)
+        d["synthetic"] = bool(d["synthetic"])
+        out.append(d)
+    return out
 
 
 def get_call(conn: sqlite3.Connection, call_id: str) -> dict | None:
@@ -348,7 +489,44 @@ def _demo() -> None:
     assert event_count(conn, "c1") == 3
     assert len(events_since(conn, "c1", 1)) == 2
 
-    print("store OK — refusal recorded as a row, not raised as an error")
+    # ---- documents round-trip, provenance intact
+    doc = put_document(
+        conn, "abc123-000001", sha256="f" * 64, filename="kfs.pdf",
+        media_type="application/pdf", byte_size=4096, method="pdf_table",
+        synthetic=True, uploaded_by_role="branch_helper",
+        kfs_json='{"proposal_no":"PL/1"}',
+        report={"fields": [{"label": "Cooling-off period (days)", "status": "parsed"}]},
+    )
+    assert doc["sha256"] == "f" * 64 and doc["method"] == "pdf_table"
+    assert doc["synthetic"] is True and doc["status"] == "draft"
+    assert doc["report"]["fields"][0]["status"] == "parsed"
+    assert get_document(conn, "nope") is None
+
+    doc = update_document(conn, "abc123-000001", status="confirmed",
+                          corrections=[{"label": "Recovery agents", "value": "x"}])
+    assert doc["status"] == "confirmed" and doc["corrections"][0]["label"] == "Recovery agents"
+    assert len(list_documents(conn)) == 1
+    try:
+        update_document(conn, "abc123-000001", sha256="0" * 64)  # provenance is not patchable
+    except ValueError as e:
+        assert "sha256" in str(e)
+    else:
+        raise AssertionError("sha256 must not be updatable — it is the document's identity")
+
+    # ---- THE fallback rule. A call with a document can never replay the demo fixture,
+    # whose clauses would describe a different loan than the record's own provenance.
+    create_call(conn, "bare")
+    create_call(conn, "bound", doc_id="abc123-000001")
+    assert allow_fallback(conn, "bare") is True
+    assert allow_fallback(conn, "bound") is False
+    assert get_call(conn, "bound")["doc_id"] == "abc123-000001"
+    # No setter exists to undo it. Asserted rather than merely commented, so adding one
+    # later trips this self-check instead of quietly reopening the hole.
+    assert "set_fallback_allowed" not in globals()
+    # An unknown call defaults to allowed: that is the bare-call-id path, not a document.
+    assert allow_fallback(conn, "never-created") is True
+
+    print("store OK — refusal is a row; a document-bound call cannot replay the fixture")
 
 
 if __name__ == "__main__":

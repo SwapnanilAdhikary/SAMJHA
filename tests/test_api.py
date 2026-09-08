@@ -4,8 +4,9 @@ The hash tests are the ones that matter. A consent record whose digest drifts be
 reads cannot be used to defend or dispute a loan, so "same input, same hash" is not a
 nicety — it is the property the whole record is for.
 
-No live server: FastAPI's TestClient drives the ASGI app in-process. No network, no Rime,
-no LiveKit, no LiveKit secret (which is a masked placeholder on this machine anyway).
+No live server: FastAPI's TestClient drives the ASGI app in-process. No network, no Rime
+and no LiveKit — the token route is checked by decoding the JWT with LiveKit's own
+TokenVerifier (tests/test_intake.py), which needs no connection.
 """
 
 from __future__ import annotations
@@ -77,7 +78,11 @@ def test_record_captures_what_was_actually_heard(conn):
     assert c["key_values_not_heard"][0]["raw_text"] == "000512348899"
     assert c["all_key_values_heard"] is False
     assert c["transitions"][0]["reason"] == "barge-in mid-number"
+    # No document attached, so the clauses came from a committed fixture: synthetic by
+    # construction, and the provenance block says so rather than the record asserting it.
     assert rec["synthetic_data"] is True
+    assert rec["kfs_provenance"]["method"] == "unknown"
+    assert rec["kfs_provenance"]["sha256"] == ""
 
 
 def test_refusal_is_a_record_not_an_error(conn):
@@ -101,6 +106,59 @@ def test_lowercase_decision_is_normalized(conn):
     store.create_call(conn, "c1")
     seed(conn, "c1", REFUSAL_SCRIPT)
     assert records.build_record(conn, "c1")["refusals"]
+
+
+class TestARealDecisionSurvivesToTheRecord:
+    """The FSM's own vocabulary, folded the way a live call actually folds it.
+
+    `agent/rushed_consent.ConsentDecision` names its fields `granted`, `human_callback`
+    and `reasons`; the store and the record read `decision`, `flagged_for_callback` and
+    `reason`. api/demo.py writes the canonical names directly, so the demo fixture cannot
+    catch a mistranslation here — only a test driving the real FSM shape can.
+    """
+
+    def _decide(self, conn, *, interrupted: bool, utterance: str, latency: float):
+        from agent.consent_fsm import ConsentFSM
+        from agent.rushed_consent import evaluate
+        from kfs.clauses import Clause, KeyValue, Segment
+
+        kv = KeyValue("rupee_amount", 125000, "₹1,25,000", "एक लाख पच्चीस हज़ार")
+        clause = Clause(id="sanctioned", title_hi="मंज़ूर रकम",
+                        segments=[Segment("...", key_value=kv, audio=b"\x00" * 8000)])
+        log: list[dict] = []
+        fsm = ConsentFSM([clause], call_id="c1", sink=log.append)
+        fsm.begin_delivery("sanctioned")
+        fsm.end_delivery("sanctioned", played_s=0.2 if interrupted else 1.0,
+                         interrupted=interrupted)
+        if not interrupted:
+            fsm.teach_back("sanctioned", transcript="एक लाख पच्चीस हज़ार", passed=True)
+        evaluate(fsm, utterance, latency_s=latency)
+
+        store.create_call(conn, "c1")
+        for raw in log:
+            for ev in events.expand(raw):
+                store.apply_event(conn, "c1", ev)
+        return records.build_record(conn, "c1")
+
+    def test_a_refusal_is_not_recorded_as_pending(self, conn):
+        rec = self._decide(conn, interrupted=True,
+                           utterance="हाँ हाँ ठीक है, बस करो", latency=0.4)
+        assert rec["consent"]["decision"] == "REFUSED"
+        assert rec["consent"]["flagged_for_callback"] is True
+        assert rec["refusals"], "a refusal must survive to the record"
+        assert rec["consent_permitted"] is False
+        # The WHY, not just the verdict.
+        assert "faster_than_deliberation_floor" in rec["consent"]["reason"]
+        assert "clauses_not_understood" in rec["consent"]["reason"]
+        assert rec["clauses_blocking_consent"] == ["sanctioned"]
+
+    def test_a_granted_consent_is_recorded_as_granted(self, conn):
+        rec = self._decide(conn, interrupted=False,
+                           utterance="हाँ, मैं सहमत हूँ", latency=3.0)
+        assert rec["consent"]["decision"] == "GRANTED"
+        assert rec["consent"]["flagged_for_callback"] is False
+        assert rec["refusals"] == []
+        assert rec["consent_permitted"] is True
 
 
 # -------------------------------------------------------------------- the hash

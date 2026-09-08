@@ -36,6 +36,7 @@ Self-check:  uv run python -m agent.consent_fsm
 from __future__ import annotations
 
 import json
+import os
 import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
@@ -49,6 +50,17 @@ from kfs.clauses import Clause, ClauseState, KeyValue
 EPS = 1e-6
 
 EVENTS_DIR = Path("events")
+
+
+def events_dir() -> Path:
+    """Where the JSONL goes. Read per call, NOT bound at import.
+
+    `api/events.py:69` has always honoured SAMJHA_EVENTS_DIR while this module hardcoded
+    `Path("events")` as a default argument — evaluated once at import, so setting the env
+    var made the agent write to one directory and the API tail another. Nothing crashed;
+    the panel just stayed empty forever. Same env var, same default, one behaviour.
+    """
+    return Path(os.environ.get("SAMJHA_EVENTS_DIR", str(EVENTS_DIR)))
 
 
 @dataclass
@@ -81,12 +93,13 @@ def _kv_label(kv: KeyValue) -> str:
     return f"{kv.kind}={kv.raw_text}"
 
 
-def jsonl_sink(call_id: str, directory: Path = EVENTS_DIR) -> Callable[[dict], None]:
+def jsonl_sink(call_id: str, directory: Path | None = None) -> Callable[[dict], None]:
     """Append-only JSONL, one event per line. The web UI tails it; Pathway can too.
 
     Opened and closed per line on purpose: a crashed call must leave a readable record,
     and at one line per state transition the cost is irrelevant.
     """
+    directory = events_dir() if directory is None else directory
     directory.mkdir(parents=True, exist_ok=True)
     path = directory / f"{call_id}.jsonl"
 

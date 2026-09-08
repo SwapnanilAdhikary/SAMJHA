@@ -43,7 +43,9 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "playwright>=1.62.0",
     "pytest>=8.0",
+    "python-pptx>=1.0.2",
     "reportlab>=5.0.1",
 ]
 

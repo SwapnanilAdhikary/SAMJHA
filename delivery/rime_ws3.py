@@ -28,12 +28,14 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import contextlib
 import json
 import os
 from dataclasses import dataclass, field
 from urllib.parse import urlencode
 
 import websockets
+from websockets.exceptions import WebSocketException
 
 WS3 = "wss://users-ws.rime.ai/ws3"
 
@@ -106,6 +108,51 @@ def api_key() -> str:
     return key
 
 
+CONNECT_ATTEMPTS = 3
+OPEN_TIMEOUT = 10.0
+
+# Everything that means "the edge did not give us a socket this time". Rime is US-only
+# with no India region, and all of these have been seen from here mid-call: a
+# trans-Pacific handshake timeout, and an HTTP 502 from the edge (which arrives as
+# InvalidStatus, a WebSocketException). None of them is a reason to end a consent call.
+#
+# Imported explicitly rather than reached through `websockets.exceptions`: that is a LAZY
+# submodule, so touching it at module scope raises AttributeError at import time. It works
+# inside a function body, which is why the `except` clause below gets away with it.
+TRANSIENT = (TimeoutError, OSError, WebSocketException)
+
+
+async def connect_with_retry(*, lang: str | None = LANG, speaker: str = SPEAKER,
+                             attempts: int = CONNECT_ATTEMPTS,
+                             open_timeout: float = OPEN_TIMEOUT):
+    """Open a /ws3 socket, retrying the handshake with escalating backoff.
+
+    The retry policy lives here so the batch helper and `agent.session.RimeSocketPool`
+    cannot drift apart. The pool used to call `websockets.connect` directly with no
+    retry, and a single HTTP 502 while re-opening its warm spare crashed a live call
+    three clauses in.
+    """
+    last: Exception | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            return await websockets.connect(
+                url(lang=lang, speaker=speaker),
+                additional_headers={"Authorization": f"Bearer {api_key()}"},
+                max_size=None,
+                open_timeout=open_timeout,
+            )
+        except TRANSIENT as e:
+            last = e
+            if attempt < attempts:
+                # Short, escalating. Long enough to ride out a blip, short enough that a
+                # listener on the line does not think the call dropped.
+                await asyncio.sleep(0.5 * attempt)
+    raise RuntimeError(
+        f"Rime /ws3 refused a connection after {attempts} attempts: "
+        f"{type(last).__name__}: {last}"
+    ) from last
+
+
 async def synthesize(texts: list[str], *, lang: str | None = LANG,
                      speaker: str = SPEAKER, timeout: float = 60.0,
                      key_value_flags: list[bool] | None = None,
@@ -152,36 +199,59 @@ async def _synthesize_once(texts: list[str], *, lang: str | None, speaker: str,
         # attempts still fail inside a window a listener will sit through.
         open_timeout=10,
     ) as ws:
+        # ONE FLUSH AT A TIME, waiting for its `done` before sending the next text.
+        #
+        # This is the whole reason per-segment attribution works. /ws3 emits only `chunk`
+        # frames and a `done` — there is no `flush_done` or `segment_done` event, verified
+        # live and in the committed day-1 transcript (evals/results/battery/frames.json:
+        # 1543 chunk, 15 done, 1 timestamps, and nothing else). An earlier version of this
+        # function pipelined every text and flush and then sent `eos`, so the single
+        # trailing `done` arrived after all the audio and every chunk was attributed to
+        # segment 0: the first segment held the entire clause and the rest held nothing.
+        #
+        # That is not a cosmetic accounting error. `Clause.heard_key_values` asks "did the
+        # segment carrying this value finish playing?", so a value sitting in segment 1+
+        # had a zero-length segment and could never be heard — the clause read perfectly
+        # to the borrower and the ledger recorded the number as missed, blocking consent
+        # forever. Waiting for `done` per flush is what makes the byte counts mean what
+        # the consent mechanic says they mean.
+        #
+        # `agent/session.rime_ws3_flush` has always done it this way on the live path;
+        # this brings the batch helper into line with it.
         for seg in segments:
             await ws.send(json.dumps({"text": seg.text}))
             await ws.send(json.dumps({"operation": "flush"}))
-        await ws.send(json.dumps({"operation": "eos"}))
 
-        while True:
-            try:
-                raw = await asyncio.wait_for(ws.recv(), timeout=timeout)
-            except asyncio.TimeoutError:
-                frames.append({"type": "__timeout__"})
-                break
+            while True:
+                try:
+                    raw = await asyncio.wait_for(ws.recv(), timeout=timeout)
+                except asyncio.TimeoutError:
+                    frames.append({"type": "__timeout__", "segment": idx})
+                    break
 
-            if isinstance(raw, bytes):  # unexpected on /ws3; record rather than guess
-                frames.append({"type": "__binary__", "bytes": len(raw)})
-                continue
+                if isinstance(raw, bytes):  # unexpected on /ws3; record rather than guess
+                    frames.append({"type": "__binary__", "bytes": len(raw)})
+                    continue
 
-            msg = json.loads(raw)
-            # Record everything except the audio payload, which would swamp the log.
-            frames.append({k: v for k, v in msg.items() if k not in ("data", "audioContent")})
+                msg = json.loads(raw)
+                # Record everything except the audio payload, which would swamp the log.
+                frames.append(
+                    {k: v for k, v in msg.items() if k not in ("data", "audioContent")})
 
-            kind = msg.get("type")
-            if kind == "chunk":
-                payload = msg.get("data") or msg.get("audioContent") or ""
-                if idx < len(segments):
-                    segments[idx].audio.extend(base64.b64decode(payload))
-            elif kind == "timestamps":
-                got_timestamps = True
-            elif kind in ("flush_done", "segment_done"):
-                idx = min(idx + 1, len(segments) - 1)
-            elif kind in ("done", "eos", "error"):
-                break
+                kind = msg.get("type")
+                if kind == "chunk":
+                    payload = msg.get("data") or msg.get("audioContent") or ""
+                    seg.audio.extend(base64.b64decode(payload))
+                elif kind == "timestamps":
+                    got_timestamps = True
+                elif kind in ("done", "flush_done", "segment_done", "eos"):
+                    break
+                elif kind == "error":
+                    raise RuntimeError(f"rime error on segment {idx}: {msg}")
+            idx += 1
+
+        # Best-effort: Rime may already be closing, and every segment's audio is in hand.
+        with contextlib.suppress(Exception):
+            await ws.send(json.dumps({"operation": "eos"}))
 
     return Result(segments=segments, frames=frames, got_timestamps=got_timestamps)

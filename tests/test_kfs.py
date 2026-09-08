@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import re
+import zipfile
 from decimal import Decimal
 from pathlib import Path
 
@@ -20,12 +21,13 @@ import pytest
 
 from delivery.normalizer.hindi import digits
 from kfs.build_clauses import build_clauses, inr
-from kfs.extract import extract
+from kfs.extract import IncompleteKFS, UnsupportedDocument, extract, extract_fields
 from kfs.finance import apr_pct, emi
 from kfs.schema import KFS
 
 FIXTURES = sorted((Path(__file__).parent.parent / "fixtures/synthetic").glob("*.json"))
 PDFS = sorted((Path(__file__).parent.parent / "fixtures/synthetic/pdf").glob("*.pdf"))
+DOCXS = sorted((Path(__file__).parent.parent / "fixtures/synthetic/docx").glob("*.docx"))
 
 RIME_CHAR_CAP = 1000
 
@@ -223,13 +225,212 @@ class TestExtract:
 
     def test_a_pdf_missing_required_rows_is_rejected(self, tmp_path):
         """Reject rather than return a half-filled KFS. A document we cannot read
-        completely is not one we are willing to read to a borrower as fact."""
+        completely is not one we are willing to read to a borrower as fact.
+
+        The error names EVERY missing field, not just the first one it tripped over: the
+        intake page shows that list to a human, and one-at-a-time discovery would mean one
+        re-upload per missing row.
+        """
         path = _table_pdf(tmp_path / "partial.pdf", [
             ("Loan proposal number", "PL/2026/000001"),
             ("Type of loan", "Personal Loan"),
         ])
-        with pytest.raises(ValueError, match="KFS row missing"):
+        with pytest.raises(IncompleteKFS) as e:
             extract(path)
+
+        # Named explicitly because this is the field whose pydantic default (0) would be
+        # spoken as "इस लोन में कूलिंग-ऑफ की अवधि नहीं है।" — a fabricated denial of a
+        # statutory right. See kfs/fields.py.
+        assert "Cooling-off period (days)" in e.value.missing
+        assert "Annual Percentage Rate (APR) (%)" in e.value.missing
+        # The two rows that WERE present must not be reported missing.
+        assert "Loan proposal number" not in e.value.missing
+        assert "Type of loan" not in e.value.missing
+        # Still a ValueError, so callers that only catch that keep working.
+        assert isinstance(e.value, ValueError)
+
+
+@pytest.mark.skipif(not DOCXS, reason="no .docx — run fixtures/synthetic/_to_docx.py")
+class TestDocx:
+    """Word support. The format split is only correct if both formats agree exactly."""
+
+    @pytest.mark.parametrize("docx", DOCXS, ids=lambda p: p.stem)
+    def test_docx_round_trips_to_the_source_fixture(self, docx):
+        assert extract(docx) == load(docx.parent.parent / f"{docx.stem}.json")
+
+    @pytest.mark.parametrize("docx", DOCXS, ids=lambda p: p.stem)
+    def test_docx_and_pdf_yield_the_identical_kfs(self, docx):
+        """THE assertion for the format split, on Decimal equality so 18.5 != 18.50.
+
+        One document, two formats, one reader downstream of `read_tables`. If this holds
+        for all ten, `_grid_docx` and `_grid_pdf` are interchangeable and every existing
+        guarantee about the PDF path applies to Word too.
+        """
+        pdf = docx.parent.parent / "pdf" / f"{docx.stem}.pdf"
+        if not pdf.exists():
+            pytest.skip(f"no matching PDF for {docx.name}")
+        assert extract(docx) == extract(pdf)
+
+    def test_cell_text_split_across_runs_is_rejoined(self):
+        """Word splits a cell across `w:t` runs; the fixtures force that split.
+
+        Taking only the first run of "1,04,596" reads 1,04 — a hundred-fold error in a
+        loan amount, with nothing raised. Assert against the JSON, which never went
+        through XML at all.
+        """
+        from kfs.extract import read_tables
+
+        docx = DOCXS[0]
+        want = load(docx.parent.parent / f"{docx.stem}.json")
+
+        # The fixture really is multi-run, or this test proves nothing. Counted on the
+        # exact opening tags: bare "<w:t" is also a prefix of <w:tc>, <w:tr>, <w:tbl>.
+        raw = zipfile.ZipFile(docx).read("word/document.xml").decode()
+        text_runs, cells = raw.count("<w:t "), raw.count("<w:tc>")
+        assert cells > 0
+        assert text_runs > 2 * cells, (
+            f"fixture is not split across runs: {text_runs} w:t for {cells} w:tc"
+        )
+
+        assert extract(docx).sanctioned_amount_inr == want.sanctioned_amount_inr
+        assert any("," in c for row in read_tables(docx)[0] for c in row), \
+            "expected grouped amounts to survive the run rejoin"
+
+    def test_a_nested_table_does_not_bleed_into_its_parent_cell(self):
+        """`.//w:p` finds a nested table's paragraphs, so a cell holding a sub-table would
+        otherwise absorb every word of it.
+
+        fixtures/synthetic/_to_docx.py nests a Branch code / Sourcing channel table in the
+        LAST Part 1 value cell — the grievance phone. This caught a real bug on first run.
+        """
+        nested = next((d for d in DOCXS if d.stem == "kfs_03_consumer_durable"), None)
+        assert nested is not None, "the nested-table fixture is gone; _to_docx.NEST_IN moved?"
+
+        got = extract(nested)
+        want = load(nested.parent.parent / f"{nested.stem}.json")
+        assert got.grievance_officer_phone == want.grievance_officer_phone
+        for leaked in ("Branch code", "BR-0194", "Sourcing channel", "Direct"):
+            assert leaked not in got.grievance_officer_phone
+
+    def test_an_unreadable_format_is_refused_by_name(self, tmp_path):
+        bad = tmp_path / "scan.jpg"
+        bad.write_bytes(b"\xff\xd8\xff\xe0not an image really")
+        with pytest.raises(UnsupportedDocument, match=r"\.jpg"):
+            extract(bad)
+
+    def test_a_zip_that_is_not_a_word_document_is_refused(self, tmp_path):
+        notdocx = tmp_path / "archive.docx"
+        with zipfile.ZipFile(notdocx, "w") as z:
+            z.writestr("hello.txt", "not a word document")
+        with pytest.raises(UnsupportedDocument, match="word/document.xml"):
+            extract(notdocx)
+
+
+class TestNoFabricationFromDefaults:
+    """The worst thing this system could do is state a fact it never read.
+
+    `kfs/schema.py` defaults `cooling_off_period_days` to 0 and `fees` to [], and
+    `kfs/build_clauses.py` reads both falsy cases aloud as positive statements. These
+    tests name the exact Hindi sentence rather than asserting a boolean, because the
+    sentence is the harm and a boolean assertion would survive a refactor that changed it.
+    """
+
+    NO_COOLING_OFF = "इस लोन में कूलिंग-ऑफ की अवधि नहीं है।"
+    NO_FEES = "इस लोन पर कोई अलग फीस नहीं है।"
+
+    def _spoken(self, kfs: KFS, clause_id: str) -> str:
+        clause = next(c for c in build_clauses(kfs) if c.id == clause_id)
+        return " ".join(s.text for s in clause.segments)
+
+    def test_the_fabrication_sentences_still_exist_as_written(self, docs):
+        """Guard the guard: if build_clauses rewords these, the tests below go quiet.
+
+        kfs_04_gold declares cooling_off_period_days = 0 LEGITIMATELY, so this sentence is
+        a true statement there — which is exactly why the value alone can never be used to
+        detect a fabrication.
+        """
+        gold = next(k for p, k in docs if p.stem == "kfs_04_gold")
+        assert gold.cooling_off_period_days == 0
+        assert self.NO_COOLING_OFF in self._spoken(gold, "prepayment")
+
+    def test_an_omitted_cooling_off_period_cannot_reach_the_default(self, docs):
+        """A field absent from the document must never become "you have no such right"."""
+        _, kfs = docs[0]
+        raw = json.loads((FIXTURES[0]).read_text(encoding="utf-8"))
+        assert raw["cooling_off_period_days"] != 0, "pick a fixture that HAS a cooling-off period"
+
+        raw.pop("cooling_off_period_days")
+        # Pydantic is perfectly happy: the default makes this a valid KFS...
+        silently_defaulted = KFS.model_validate(raw)
+        # ...and build_clauses then speaks a denial of a statutory right.
+        assert self.NO_COOLING_OFF in self._spoken(silently_defaulted, "prepayment")
+
+        # Which is why the manifest refuses it BEFORE a KFS is ever constructed.
+        from kfs import fields
+
+        part1 = {f.label: "x" for f in fields.PART1}
+        del part1["Cooling-off period (days)"]
+        assert "Cooling-off period (days)" in [f.label for f in fields.resolve(part1).missing()]
+
+    def test_an_omitted_fee_table_cannot_reach_the_empty_default(self):
+        raw = json.loads((FIXTURES[0]).read_text(encoding="utf-8"))
+        assert raw["fees"], "pick a fixture that HAS fees"
+        raw["fees"] = []
+        assert self.NO_FEES in self._spoken(KFS.model_validate(raw), "fees")
+
+        # An empty fee table is a real answer; a fee table never found is not. extract_fields
+        # keeps them distinguishable so the intake page can tell a human which it saw.
+        assert extract_fields(PDFS[0]).fee_table_found
+
+    @pytest.mark.skipif(not PDFS, reason="no PDFs")
+    def test_every_fixture_pdf_reports_complete(self):
+        """No fixture relies on a default to be readable."""
+        for pdf in PDFS:
+            report = extract_fields(pdf)
+            assert report.complete, f"{pdf.name} incomplete: {report.missing}"
+            assert not report.drifted, f"{pdf.name} matched canonical labels as synonyms"
+
+
+class TestLabelDrift:
+    """A real lender's KFS does not use Annex A's exact spellings."""
+
+    def test_a_lenders_own_spellings_resolve(self):
+        from kfs import fields
+
+        res = fields.resolve({
+            "Loan Proposal No.": "PL/2026/1",
+            "APR (%)": "18.5",
+            "Sanctioned Amount (Rs)": "1,25,000",
+            "Loan Tenure (months)": "36",
+        })
+        assert res.values["Loan proposal number"] == "PL/2026/1"
+        assert res.values["Annual Percentage Rate (APR) (%)"] == "18.5"
+        assert res.values["Sanctioned loan amount (Rs)"] == "1,25,000"
+        assert res.values["Loan term (months)"] == "36"
+
+    def test_drift_is_reported_with_the_documents_own_wording(self):
+        from kfs import fields
+
+        res = fields.resolve({"APR (%)": "18.5"})
+        assert res.matched_by["Annual Percentage Rate (APR) (%)"] == "APR (%)"
+        assert "Annual Percentage Rate (APR) (%)" in res.drifted
+
+    def test_an_unrelated_label_is_never_guessed_into_a_required_field(self):
+        from kfs import fields
+
+        # "Total charges" is NOT "Total amount to be paid". Guessing would put a wrong
+        # number into a consent record.
+        res = fields.resolve({"Total charges (Rs)": "9,999"})
+        assert res.unknown == {"Total charges (Rs)": "9,999"}
+        assert "Total amount to be paid (Rs)" not in res.values
+
+    def test_a_fixed_rate_loan_is_not_asked_for_the_floating_block(self):
+        from kfs import fields
+
+        fixed = fields.resolve({f.label: "x" for f in fields.PART1} | {"Interest rate type": "Fixed"})
+        assert fixed.complete
+        floating = fields.resolve({f.label: "x" for f in fields.PART1} | {"Interest rate type": "Floating"})
+        assert "Benchmark" in [f.label for f in floating.missing()]
 
 
 def _table_pdf(path: Path, rows: list[tuple[str, str]]) -> Path:

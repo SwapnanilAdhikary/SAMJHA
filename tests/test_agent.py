@@ -1,9 +1,8 @@
 """The consent machinery, proved without a network.
 
-The LiveKit secret in .env is a masked placeholder, so no live session was ever run. That
-is fine and, for these rules, beside the point: the four FSM invariants and the teach-back
-grading are pure logic, and pure logic that only works when a room is connected is logic
-nobody can defend in front of a regulator.
+None of these needs a room. That is the point, not a limitation: the four FSM invariants
+and the teach-back grading are pure logic, and pure logic that only works when a room is
+connected is logic nobody can defend in front of a regulator.
 
 Everything here runs offline. The one exception is the mu-law decoder, which is checked
 sample-for-sample against ffmpeg — a local binary, not a service.
@@ -648,9 +647,12 @@ def test_real_kfs_clauses_run_through_the_loop():
     means that pipeline is not ready yet, not that the agent is broken.
     """
     pytest.importorskip("kfs.build_clauses")
-    from agent.main import load_clauses
+    from agent.main import _fixture_clauses
 
-    clauses = load_clauses()
+    # load_clauses(kfs) is now pure — a call's loan comes from its own document, fetched
+    # per job, so one worker can serve two borrowers without a process-global env var
+    # deciding which loan they both hear. _fixture_clauses is the offline dev path.
+    clauses, _ = _fixture_clauses()
     assert clauses, "no clauses built from the synthetic fixture"
 
     # The contract the consent mechanic rests on: one key value per flush segment, so the
@@ -658,12 +660,28 @@ def test_real_kfs_clauses_run_through_the_loop():
     for c in clauses:
         assert len(c.key_values) == sum(1 for s in c.segments if s.carries_key_value)
 
+    # NOTHING HAS BEEN SYNTHESIZED, so nothing can be reported as heard. Without the
+    # no-audio guard in Clause.heard_key_values the arithmetic reads 0.0 <= 0.0 and every
+    # value in every clause claims to have been heard before a word was spoken.
+    for c in clauses:
+        assert c.heard_key_values() == []
+        assert not c.all_key_values_heard()
+
     # Nothing has played, so nothing is understood, whatever the borrower then says.
     f = ConsentFSM(clauses, call_id="integration")
     for c in clauses:
         f.begin_delivery(c.id)
         f.delivery_dropped(c.id)
     assert f.blocking_clauses() == [c.id for c in clauses]
+
+    # delivery_dropped promises "heard NOTHING, never heard everything". Assert it of the
+    # transition rows that reach the consent record, not just of the clause states: this
+    # is the TTS-failure path scripts/talk.py takes, and it really happened in a live run.
+    dropped = [t for t in f.log if t.get("reason") == "no_playback_event"]
+    assert dropped, "expected a no_playback_event transition per clause"
+    for t in dropped:
+        assert t["heard_key_values"] == [], t
+        assert t["played_s"] == 0.0
 
     d = evaluate(f, "हाँ हाँ ठीक है, बस करो", latency_s=-2.0)
     assert not d.granted and d.human_callback

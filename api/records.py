@@ -27,9 +27,14 @@ import json
 import sqlite3
 from datetime import UTC, datetime
 
-from api import store
+from api import intake, store
 
-RECORD_VERSION = 1
+# 2 adds `kfs_provenance` and makes `synthetic_data` describe the actual source document
+# instead of asserting True. Every v1 digest therefore differs from its v2 digest — safe
+# to do exactly once, and only because no golden hash is stored anywhere in this repo.
+# Records are rebuilt from rows on every read, so a digest someone wrote down from a v1
+# read will not reproduce; the version field is how they can tell why.
+RECORD_VERSION = 2
 HASH_ALGORITHM = "sha256"
 CANONICALIZATION = (
     "json.dumps(sort_keys=True, separators=(',',':'), ensure_ascii=False).encode('utf-8')"
@@ -106,12 +111,24 @@ def build_record(conn: sqlite3.Connection, call_id: str) -> dict:
     # UNDERSTOOD is the only state that permits consent (kfs.clauses.ClauseState).
     blocking = [c["clause_id"] for c in clauses if c["final_state"] != "UNDERSTOOD"]
 
+    # Where the facts in this record came from. Written INSIDE the hashed payload, so the
+    # provenance cannot be edited away from the clauses it describes.
+    doc = store.get_document(conn, call["doc_id"]) if call.get("doc_id") else None
+    provenance = intake.provenance(doc)
+
     final = decisions[-1] if decisions else None
     return {
         "record_version": RECORD_VERSION,
         "call_id": call_id,
         "mode": call["mode"],
-        "synthetic_data": True,  # every KFS in this project is synthetic. Always.
+        # Was `True` unconditionally, with the comment "every KFS in this project is
+        # synthetic. Always." That stopped being true the moment a document could be
+        # uploaded, and a false claim inside a sha256-sealed consent record is the worst
+        # possible bug here. It is now the uploader's declared assertion, carried through
+        # from the document row; a call with no document is synthetic by construction,
+        # because its clauses came from a committed fixture.
+        "synthetic_data": provenance["synthetic"],
+        "kfs_provenance": provenance,
         "label": call["label"],
         "kfs_ref": call["kfs_ref"],
         "started_at": iso(call["created_at"]),
