@@ -222,7 +222,9 @@ def test_canonical_json_keeps_devanagari_unescaped(conn):
 
 
 def test_page_is_served_at_both_routes(client):
-    for path in ("/", "/record/anything"):
+    # "/" is the intake page now; the judge panel moved to "/panel". index.html still
+    # serves both the panel and the record viewer, which is what this asserts.
+    for path in ("/panel", "/record/anything"):
         r = client.get(path)
         assert r.status_code == 200
         assert "SAMJHA" in r.text
@@ -378,3 +380,64 @@ def test_provider_badge_matches_the_code_path():
     assert provider._STT["sarvam"]["model"] == REALTIME_MODEL, (
         "provider badge advertises a Sarvam model the installed plugin will not run"
     )
+
+
+def test_dispatch_is_idempotent_per_call(monkeypatch):
+    """A second dispatch must reuse the first, never create a second agent job.
+
+    The borrower page POSTs this route on every connect(), and connect() runs from the
+    green button, the mic-retry button, and every page reload. Two dispatches means two
+    agent jobs reading the same clauses into the same room, which the borrower hears as one
+    read chopped to pieces. Observed live in events/live-1b24f0b0.jsonl: clause_registered
+    twenty times for a ten-clause document.
+    """
+    from api import main as m
+
+    created = []
+
+    class _FakeDispatch:
+        def __init__(self, id_, agent_name):
+            self.id, self.agent_name = id_, agent_name
+
+    class _FakeAgentDispatch:
+        def __init__(self):
+            self.store = []
+
+        async def list_dispatch(self, room_name):
+            return list(self.store)
+
+        async def create_dispatch(self, req):
+            d = _FakeDispatch(f"AD_{len(self.store)}", req.agent_name)
+            self.store.append(d)
+            created.append(d)
+            return d
+
+    fake = _FakeAgentDispatch()
+
+    class _FakeLK:
+        agent_dispatch = fake
+
+        def __init__(self, *a, **kw):
+            pass
+
+        async def aclose(self):
+            pass
+
+    monkeypatch.setenv("LIVEKIT_URL", "wss://x.livekit.cloud")
+    monkeypatch.setenv("LIVEKIT_API_KEY", "k")
+    monkeypatch.setenv("LIVEKIT_API_SECRET", "s")
+
+    import livekit.api as lkapi
+
+    monkeypatch.setattr(lkapi, "LiveKitAPI", _FakeLK)
+
+    with TestClient(m.app) as c:
+        cid = c.post("/calls", json={"label": "idem"}).json()["id"]
+        first = c.post(f"/calls/{cid}/dispatch").json()
+        second = c.post(f"/calls/{cid}/dispatch").json()
+        third = c.post(f"/calls/{cid}/dispatch").json()
+
+    assert first["reused"] is False
+    assert second["reused"] is True and third["reused"] is True
+    assert second["dispatch_id"] == first["dispatch_id"] == third["dispatch_id"]
+    assert len(created) == 1, f"created {len(created)} dispatches; exactly one is correct"

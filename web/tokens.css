@@ -1,0 +1,57 @@
+/* One palette, three surfaces. Loaded by index.html, intake.html and call.html.
+ *
+ * Before this file each page carried its own :root and they had NOTHING in common —
+ * --paper vs --bg, --rule vs --line, and --partial / --warn / --amber all naming the same
+ * idea in three different colours. The panel was light cream while the borrower's page was
+ * near-black, so a demo that moved between them looked like two products.
+ *
+ * The legacy names are kept as aliases rather than renamed across ~1600 lines of CSS. A
+ * rename touches every rule and every rule is a chance to break a page the night before a
+ * demo; an alias touches one line and is verifiable by eye.
+ *
+ * Dark, because the borrower's page is the one surface whose look is load-bearing — it is
+ * near-textless and read on a phone — and because the deck is dark.
+ */
+:root {
+  /* ---- ground */
+  --bg:        #0b0d12;   /* page */
+  --panel:     #13171f;   /* raised surface */
+  --panel-2:   #1a1f2b;   /* raised twice: table head, inset code */
+  --line:      #242a38;   /* hairline */
+  --ink:       #f2f5fb;   /* primary text */
+  --dim:       #98a1b6;   /* secondary text */
+
+  /* ---- state. One colour per meaning, across every surface. */
+  --go:        #1db954;   /* success, consent granted, UNDERSTOOD */
+  --go-deep:   #0f7a37;
+  --heard:     #3ddc84;   /* heard, but not yet understood */
+  --amber:     #ffb020;   /* PARTIALLY_HEARD, refusal, "look here" */
+  --red:       #ff5c5c;   /* failure, consent refused */
+  --drift:     #54a0ff;   /* a lender's wording absorbed by a synonym */
+
+  /* ---- tinted backings, dark-appropriate. Were light washes (#fff5eb etc). */
+  --go-bg:     #0e2b19;
+  --heard-bg:  #10281c;
+  --amber-bg:  #2e2206;
+  --red-bg:    #2b1013;
+  --dim-bg:    #1a1f2b;
+
+  /* ================= aliases: index.html (the judge panel and the record) ========= */
+  --paper:          var(--bg);
+  --card:           var(--panel);
+  --rule:           var(--line);
+  --unheard:        var(--dim);
+  --partial:        var(--amber);
+  --fail:           var(--red);
+  --understood:     var(--go);
+  --unheard-bg:     var(--dim-bg);
+  --partial-bg:     var(--amber-bg);
+  --fail-bg:        var(--red-bg);
+  --understood-bg:  var(--go-bg);
+
+  /* ================= aliases: intake.html ======================================== */
+  --ok:     var(--go);
+  --warn:   var(--amber);
+  --bad:    var(--red);
+  --accent: var(--go);     /* was #8b7cff — a purple that appeared nowhere else */
+}

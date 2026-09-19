@@ -1,5 +1,5 @@
 .PHONY: help setup preflight battery test eval demo-fixtures secrets talk \
-        serve agent vendor fixtures prompts e2e video zip
+        serve agent vendor fixtures prompts e2e video zip stage answers
 
 # Pinned, with its hash recorded, because there is no build step that could resolve a
 # version at deploy time. Bump both together.
@@ -73,8 +73,23 @@ e2e: ## Drive the whole flow against any KFS. Needs `make serve`. ARGS="--doc x.
 	@# Sources .env, because --drive needs RIME_API_KEY.
 	@set -a; . ./.env; set +a; uv run python scripts/e2e.py $(ARGS)
 
+answers: ## The BORROWER's lines for a document: what to say back, grader-checked
+	@# Generated from the document you are demoing, because the numbers you say back
+	@# come out of that document. ARGS="--doc path/to.pdf" for any other one.
+	@set -a; [ -f .env ] && . ./.env; set +a; uv run python scripts/answers.py $(ARGS)
+
+stage: ## GO/NO-GO before a live demo. URL=https://... checks the tunnel the phone will use.
+	@# Run this from the podium. It checks the cross-process failures no health endpoint
+	@# can see: terminal 2 never started, the tunnel died, the key is present but revoked.
+	@# Sources .env only if it exists — diagnosing a MISSING .env is half the point.
+	@set -a; [ -f .env ] && . ./.env; set +a; uv run python scripts/stagecheck.py $(URL)
+
 serve: ## The API and all three web surfaces: / (judge), /intake (helper), /c/{id} (borrower)
-	uv run uvicorn api.main:app --reload --port 8000
+	@# NO --reload. Observed twice: a file saved while this is running takes the worker
+	@# down but leaves the parent holding port 8000, so the process is still there, `make
+	@# serve` looks fine, and nothing answers. That is a bad way to find out on stage.
+	@# Restart it by hand after a code change; `make stage` catches it if you forget.
+	uv run uvicorn api.main:app --port 8000
 
 agent: ## The consent agent worker. REQUIRED for a real call — dispatch is explicit.
 	@# Without a registered worker, POST /calls/{id}/dispatch succeeds and the borrower

@@ -27,11 +27,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SAMJHA — KFS intake</title>
+<link rel="stylesheet" href="/tokens.css">
 <style>
-  :root {
-    --bg:#11131a; --panel:#191c26; --line:#2b3040; --ink:#e9ecf4; --dim:#9aa3b8;
-    --ok:#3ddc84; --warn:#ffb020; --bad:#ff5c5c; --drift:#54a0ff; --accent:#8b7cff;
-  }
   * { box-sizing:border-box; }
   body {
     margin:0; background:var(--bg); color:var(--ink);
@@ -54,6 +51,45 @@
   .note { color:var(--dim); font-size:13px; }
   .role { color:var(--dim); font-size:13px; }
   a { color:var(--drift); }
+
+  /* Where you are. Cheap to render, and it answers "how much more of this is there". */
+  .steps { display:flex; gap:8px; max-width:1000px; margin:0 auto; padding:16px 22px 0;
+           font-size:13px; flex-wrap:wrap; }
+  .step { display:flex; align-items:center; gap:7px; color:var(--dim);
+          padding:6px 12px; border:1px solid var(--line); border-radius:20px; }
+  .step b { display:grid; place-items:center; width:19px; height:19px; border-radius:50%;
+            background:var(--line); color:var(--dim); font-size:11px; }
+  .step.on { color:var(--ink); border-color:var(--accent); }
+  .step.on b { background:var(--accent); color:#04120a; }
+  .step.done b { background:var(--ok); color:#04120a; }
+
+  /* The drop zone IS the page. One target, large, and it takes a drop. */
+  .drop { display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center;
+          padding:34px 20px; border:2px dashed var(--line); border-radius:12px;
+          background:#0e1017; cursor:pointer; transition:border-color .15s, background .15s; }
+  .drop:hover { border-color:var(--accent); }
+  .drop.over { border-color:var(--accent); background:#12301f; }
+  .drop.has  { border-style:solid; border-color:var(--ok); background:#12301f; }
+  .drop svg { width:34px; height:34px; color:var(--dim); }
+  .drop.has svg { color:var(--ok); }
+  .drop-main { font-size:17px; font-weight:600; }
+
+  .opts { margin-top:14px; border-top:1px solid var(--line); padding-top:12px; }
+  .opts summary { cursor:pointer; color:var(--dim); font-size:13px; list-style:none; }
+  .opts summary::-webkit-details-marker { display:none; }
+  .opts summary::before { content:"▸ "; }
+  .opts[open] summary::before { content:"▾ "; }
+  .opts summary span { color:var(--ink); }
+
+  /* Re-using a document already read is one click, not a table to parse. */
+  .docs { display:flex; flex-wrap:wrap; gap:10px; }
+  .doccard { text-align:left; padding:11px 13px; border:1px solid var(--line);
+             border-radius:9px; background:#0e1017; cursor:pointer; font:inherit;
+             color:var(--ink); min-width:210px; }
+  .doccard:hover { border-color:var(--accent); }
+  .doccard .fn { font-weight:600; font-size:14px; }
+  .doccard .meta { color:var(--dim); font-size:11.5px; margin-top:3px; }
+  .doccard .real { color:var(--bad); font-weight:700; }
 
   label.block { display:block; margin:12px 0 6px; font-weight:600; font-size:13px; }
   input[type=text], input[type=file], select {
@@ -109,50 +145,66 @@
 <body>
 
 <header>
-  <h1>SAMJHA · KFS intake</h1>
-  <span class="role">for the officer or helper holding the document</span>
+  <h1>SAMJHA</h1>
+  <span class="role">Key Facts Statement &rarr; a consent call she can hear</span>
   <span style="flex:1"></span>
-  <a href="/" class="mono" style="font-size:13px">evidence panel →</a>
+  <a href="/panel" class="mono" style="font-size:13px">evidence panel &rarr;</a>
 </header>
+
+<!-- Where you are. Three steps, and the page only ever asks for one of them at a time. -->
+<nav class="steps" id="steps" aria-label="progress">
+  <span class="step on" data-step="1"><b>1</b> Document</span>
+  <span class="step" data-step="2"><b>2</b> Review</span>
+  <span class="step" data-step="3"><b>3</b> Call</span>
+</nav>
 
 <main>
 
-<div class="panel">
-  <h2>1 · The document</h2>
-  <p class="note">
-    RBI Key Facts Statement as <b>PDF</b> or <b>Word (.docx)</b>. Read deterministically
-    from the table grid — no OCR and no model in the loop, so a photograph or a scan
-    cannot be used here.
-  </p>
+<div class="panel" id="panel-upload">
+  <!-- One affordance, large, and it accepts a drop. The bare file input it replaces gave
+       no hint that this was the whole job of the page. -->
+  <label class="drop" id="drop" for="file">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm0 7V3.5L19.5 9H14z"/>
+    </svg>
+    <div class="drop-main" id="drop-main">Drop a KFS here, or click to choose</div>
+    <div class="note">PDF or Word (.docx) &middot; read from the table grid, never from a picture</div>
+  </label>
+  <input type="file" id="file" hidden
+         accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
 
-  <label class="block" for="file">KFS file</label>
-  <input type="file" id="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-
-  <label class="block">Who is uploading this?</label>
-  <div class="radios" id="roles">
-    <label><input type="radio" name="role" value="lender_system" checked> Lender / origination system</label>
-    <label><input type="radio" name="role" value="branch_helper"> Branch clerk or helper</label>
-    <label><input type="radio" name="role" value="borrower"> The borrower herself</label>
-  </div>
-  <p class="note">Recorded in the consent record, so an auditor can see whether one person filled every role.</p>
-
-  <label class="block">Is this a real borrower's document?</label>
-  <div class="radios" id="synthetic">
-    <label><input type="radio" name="synth" value="true" checked> Specimen / synthetic</label>
-    <label id="real-label"><input type="radio" name="synth" value="false"> Real borrower data</label>
-  </div>
-  <p class="note" id="real-note"></p>
-
-  <div class="row" style="margin-top:16px">
+  <div class="row" style="margin-top:16px; align-items:center; gap:12px">
     <button class="primary" id="btn-upload" disabled>Read the document</button>
     <span class="note" id="upload-status"></span>
   </div>
+
+  <!-- Both of these are right almost every time. Folded away so the page asks one
+       question, not three — but the current answer stays visible in the summary. -->
+  <details class="opts" id="opts">
+    <summary>Provenance &mdash; <span id="opts-summary"></span></summary>
+
+    <label class="block">Who is uploading this?</label>
+    <div class="radios" id="roles">
+      <label><input type="radio" name="role" value="lender_system" checked> Lender / origination system</label>
+      <label><input type="radio" name="role" value="branch_helper"> Branch clerk or helper</label>
+      <label><input type="radio" name="role" value="borrower"> The borrower herself</label>
+    </div>
+    <p class="note">Recorded in the consent record, so an auditor can see whether one
+      person filled every role.</p>
+
+    <label class="block">Is this a real borrower's document?</label>
+    <div class="radios" id="synthetic">
+      <label><input type="radio" name="synth" value="true" checked> Specimen / synthetic</label>
+      <label id="real-label"><input type="radio" name="synth" value="false"> Real borrower data</label>
+    </div>
+    <p class="note" id="real-note"></p>
+  </details>
 </div>
 
 <div id="result" hidden></div>
 
-<div class="panel">
-  <h2>Recent documents</h2>
+<div class="panel" id="panel-recent">
+  <h2>Or re-use a document already read</h2>
   <div id="recent"><p class="note">None yet.</p></div>
 </div>
 
@@ -187,10 +239,53 @@ async function checkRealDataAllowed() {
 
 // -------------------------------------------------------------------- uploading
 
-$("#file").addEventListener("change", () => {
-  $("#btn-upload").disabled = !$("#file").files.length;
+function setStep(n) {
+  for (const el of document.querySelectorAll(".step")) {
+    const i = Number(el.dataset.step);
+    el.classList.toggle("on", i === n);
+    el.classList.toggle("done", i < n);
+  }
+}
+
+function showPicked() {
+  const f = $("#file").files[0];
+  $("#btn-upload").disabled = !f;
   $("#upload-status").textContent = "";
+  $("#drop").classList.toggle("has", !!f);
+  $("#drop-main").textContent = f
+    ? `${f.name} — ${(f.size / 1024).toFixed(0)} KB`
+    : "Drop a KFS here, or click to choose";
+}
+
+$("#file").addEventListener("change", showPicked);
+
+// Drag and drop onto the same target the click opens.
+const drop = $("#drop");
+for (const ev of ["dragenter", "dragover"]) {
+  drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); });
+}
+for (const ev of ["dragleave", "drop"]) {
+  drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); });
+}
+drop.addEventListener("drop", (e) => {
+  const f = e.dataTransfer?.files?.[0];
+  if (!f) return;
+  const dt = new DataTransfer();
+  dt.items.add(f);
+  $("#file").files = dt.files;   // keeps ONE source of truth for the upload handler
+  showPicked();
 });
+
+// Keep the folded summary honest about what is actually selected.
+function syncOpts() {
+  const role = $("input[name=role]:checked").parentElement.textContent.trim();
+  const synth = $("input[name=synth]:checked").value === "true";
+  $("#opts-summary").innerHTML =
+    `${esc(role)} · ${synth ? "specimen" : "<b class='real'>REAL borrower data</b>"}`;
+}
+for (const el of document.querySelectorAll("#roles input, #synthetic input")) {
+  el.addEventListener("change", syncOpts);
+}
 
 $("#btn-upload").addEventListener("click", async () => {
   const file = $("#file").files[0];
@@ -215,6 +310,7 @@ $("#btn-upload").addEventListener("click", async () => {
     $("#upload-status").textContent = "";
     doc = body;
     render(doc);
+    setStep((body.missing || []).length ? 2 : 3);
     loadRecent();
   } catch (e) {
     render(null, String(e));
@@ -472,27 +568,34 @@ async function warnIfAgentMissing() {
 async function loadRecent() {
   try {
     const rows = await (await fetch("/kfs")).json();
-    $("#recent").innerHTML = rows.length ? `<table>
-      <thead><tr><th>Document</th><th>Read by</th><th>Uploader</th><th>Status</th><th>Data</th></tr></thead>
-      <tbody>${rows.map((d) => `<tr>
-        <td><a href="#" data-doc="${esc(d.doc_id)}">${esc(d.filename || d.doc_id)}</a>
-            <div class="note mono">${esc(d.sha256.slice(0, 12))}…</div></td>
-        <td>${esc(d.method)}</td><td>${esc(d.uploaded_by_role)}</td>
-        <td><span class="chip ${d.status === "confirmed" ? "parsed" : "missing"}">${esc(d.status)}</span></td>
-        <td>${d.synthetic ? "synthetic" : "<b>REAL</b>"}</td>
-      </tr>`).join("")}</tbody></table>` : `<p class="note">None yet.</p>`;
+    // De-duplicated by sha256: uploading the same specimen five times while rehearsing
+    // produced five identical rows, which buried the one you actually wanted.
+    const seen = new Set();
+    const uniq = rows.filter((d) => !seen.has(d.sha256) && seen.add(d.sha256)).slice(0, 8);
 
-    for (const a of document.querySelectorAll("#recent a[data-doc]")) {
-      a.addEventListener("click", async (e) => {
-        e.preventDefault();
-        const r = await fetch(`/kfs/${encodeURIComponent(a.dataset.doc)}`);
-        if (r.ok) { doc = await r.json(); render(doc); window.scrollTo(0, 0); }
+    $("#recent").innerHTML = uniq.length ? `<div class="docs">${uniq.map((d) => `
+      <button class="doccard" data-doc="${esc(d.doc_id)}">
+        <div class="fn">${esc(d.filename || d.doc_id)}</div>
+        <div class="meta">${esc(d.method)} · ${esc(d.uploaded_by_role)} ·
+          ${d.synthetic ? "specimen" : "<span class='real'>REAL</span>"}</div>
+        <div class="meta mono">${esc(d.sha256.slice(0, 12))}…</div>
+      </button>`).join("")}</div>` : `<p class="note">None yet.</p>`;
+
+    for (const btn of document.querySelectorAll("#recent .doccard")) {
+      btn.addEventListener("click", async () => {
+        const r = await fetch(`/kfs/${encodeURIComponent(btn.dataset.doc)}`);
+        if (!r.ok) return;
+        doc = await r.json();
+        render(doc);
+        setStep((doc.missing || []).length ? 2 : 3);
+        window.scrollTo(0, 0);
       });
     }
   } catch { /* the list is a convenience, not the job */ }
 }
 
 checkRealDataAllowed();
+syncOpts();
 loadRecent();
 </script>
 </body>

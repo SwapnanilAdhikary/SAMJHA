@@ -61,6 +61,7 @@ from livekit.agents.voice.io import PlaybackFinishedEvent
 from livekit.plugins import rime
 
 from agent.consent_fsm import ConsentFSM, jsonl_sink
+from api import events
 from agent.rushed_consent import ConsentDecision, evaluate
 from agent.teachback import grade
 from delivery import rime_ws3
@@ -73,11 +74,24 @@ FRAME_MS = 20
 
 # TurnHandlingOptions is a TypedDict in 1.8.0, so this is just a dict — but every key here
 # is a default we are overriding on purpose. Do not trim it.
+# Voice barge-in depends on room acoustics we do not control. On a laptop with its own
+# speakers — or on a stage with a PA — the mic hears the agent and the VAD reads that as the
+# borrower, so the agent interrupts itself and every clause is chopped. Echo cancellation in
+# the browser is the real fix; this is the switch for when it is not enough.
+#   SAMJHA_VOICE_BARGE_IN=0  -> voice interruption off. The on-screen stop button still
+#                               barges in, deterministically, and that is the same code path.
+VOICE_BARGE_IN = os.environ.get("SAMJHA_VOICE_BARGE_IN", "1") != "0"
+
 TURN_HANDLING: dict = {
     "interruption": {
-        "enabled": True,
+        "enabled": VOICE_BARGE_IN,
         "mode": "vad",  # 'adaptive' needs the inference service; vad is local and honest
-        "min_duration": 0.2,  # a borrower's "रुको" is short; the 0.5 default eats it
+        # 0.2, not the 0.5 default: a borrower's "रुको" is short and 0.5 eats it. This was
+        # briefly raised to 0.6 while chasing self-interruption that turned out to be two
+        # agent jobs in one room (api/main.py post_dispatch), not echo. Echo is still a real
+        # risk on a laptop, which is what the browser-side AEC and SAMJHA_VOICE_BARGE_IN
+        # are for — not a blunter threshold that also deafens the agent to the borrower.
+        "min_duration": 0.2,
         "resume_false_interruption": False,
         "backchannel_boundary": (0, 0),
     },
@@ -132,11 +146,20 @@ class PlayoutLedger:
         # Safe against a race with SpeechHandle.wait_for_playout(): AudioOutput emits this
         # event synchronously AFTER setting the internal asyncio.Event, so the listener has
         # already run by the time any awaiting coroutine resumes. (io.py, on_playback_finished.)
-        audio_output.on("playback_finished", self.events.append)
+        #
+        # The lambda is NOT decoration. Registering `self.events.append` binds the listener
+        # to that one list OBJECT; the moment take() rebound self.events to a fresh list,
+        # every subsequent event went to the orphaned original and the ledger saw nothing
+        # for the rest of the call. take() is called on the first line of deliver_clause to
+        # drop leftovers, so the listener was orphaned before the first clause was ever
+        # delivered — every clause then read in full, reported played=0.0/interrupted=True,
+        # and was marked PARTIALLY_HEARD and re-read. Resolve self.events at CALL time.
+        audio_output.on("playback_finished", lambda ev: self.events.append(ev))
 
     def take(self) -> tuple[float, bool]:
         """Consume the events seen since the last call: (seconds played, interrupted)."""
-        evs, self.events = self.events, []
+        evs = list(self.events)
+        self.events.clear()  # in place: never rebind, see attach()
         if not evs:
             return 0.0, True  # no event means heard nothing
         return sum(e.playback_position for e in evs), any(e.interrupted for e in evs)
@@ -192,7 +215,17 @@ class RimeSocketPool:
             return None
 
     async def synthesize(self, text: str, *, timeout: float = 30.0) -> bytes:
-        """One text -> one flush -> the mu-law bytes for exactly that segment."""
+        """One text -> one flush -> the mu-law bytes for exactly that segment.
+
+        Shared socket, deliberately. A fresh socket per segment was tried and reverted:
+        it cost up to 13.8 s of synthesis latency (two handshakes to US West on the
+        critical path) and it fixed nothing, because the shared socket was never the
+        problem. Measured, on both paths, every segment ends in natural silence
+        (trailing-120ms RMS is 1-5% of the utterance's own RMS), so Rime is delivering
+        complete audio here. Note also that Coda is NOT deterministic: the same 88-char
+        text measured 9.05-10.81 s across six fresh-socket runs, a 19% spread, so duration
+        alone can never tell you whether a segment was cut.
+        """
         if self._live is None:
             self._live = await self._open()
         return await rime_ws3_flush(self._live, text, timeout=timeout)
@@ -375,11 +408,31 @@ async def deliver_clause(session: AgentSession, fsm: ConsentFSM, clause: Clause,
                     state = fsm.end_delivery(clause.id, played_s=played, interrupted=True)
                 return ClauseOutcome(clause.id, state.value, round(played, 3), True)
 
+        # VOICE_BARGE_IN, not True. An explicit allow_interruptions on say() sets the
+        # HANDLE's flag, and that flag is what the VAD interrupt path actually gates on
+        # (agent_activity._interrupt_by_audio_activity). TURN_HANDLING["interruption"]
+        # ["enabled"] only supplies the activity-level DEFAULT, so hardcoding True here
+        # silently re-enabled every barge-in the kill-switch was meant to stop.
+        #
+        # Worse: with a per-handle True, _resolve_interruption_detection() returns None,
+        # which also disarms LiveKit's own _disable_vad_interruption_soon() guard — so the
+        # agent had no protection against hearing itself either. Measured in the same call:
+        # the one line spoken with allow_interruptions=False ran 8.31s uncut while every
+        # clause with True was chopped after ~0.2s of any mic energy.
+        events.emit(fsm.call_id, "speaking", text=seg.text, kind="clause",
+                    clause_id=clause.id)
         handle = session.say(seg.text, audio=_aiter(frames_from_ulaw(seg.audio)),
-                             allow_interruptions=True)
+                             allow_interruptions=VOICE_BARGE_IN)
         await handle.wait_for_playout()
 
         seg_played, seg_interrupted = ledger.take()
+        # The single most diagnostic line in the call. take() returns (0.0, True) when NO
+        # PlaybackFinishedEvent arrived, which is indistinguishable in the record from a
+        # real barge-in — so if the ledger is not wired up, every clause silently becomes
+        # PARTIALLY_HEARD and the borrower can never consent to anything.
+        logger.info("playout %s seg: played=%.2fs interrupted=%s handle.interrupted=%s "
+                    "expected=%.2fs", clause.id, seg_played, seg_interrupted,
+                    handle.interrupted, len(seg.audio) / 8000 if seg.audio else -1)
         played += seg_played
         if seg_interrupted or handle.interrupted:
             interrupted = True
@@ -391,15 +444,90 @@ async def deliver_clause(session: AgentSession, fsm: ConsentFSM, clause: Clause,
     return ClauseOutcome(clause.id, state.value, round(played, 3), interrupted)
 
 
+async def say_narrowband(session: AgentSession, pool: RimeSocketPool | None, text: str,
+                         *, allow_interruptions: bool | None = None,
+                         call_id: str | None = None) -> None:
+    """Speak one line through the SAME 8 kHz mu-law path the clauses use.
+
+    Without this the call alternates sample rates mid-conversation: clause audio is our
+    own /ws3 mu-law at 8 kHz, while anything handed to plain `session.say(text)` goes out
+    through the rime.TTS plugin, which hardcodes `audioFormat: pcm` (RIME_EVIDENCE §5) and
+    is therefore wideband. Switching between the two between a clause and the question
+    about it is audible, and it sounds like a fault in the audio rather than a change of
+    speaker.
+
+    Falls back to the plugin if Rime fails here. A question she cannot hear is worse than
+    a question in the wrong bandwidth, and the FSM records what actually played either way.
+    """
+    if allow_interruptions is None:
+        allow_interruptions = VOICE_BARGE_IN
+    if call_id:
+        events.emit(call_id, "speaking", text=text, kind="line")
+    if pool is not None:
+        try:
+            audio = await pool.synthesize(text)
+            await session.say(text, audio=_aiter(frames_from_ulaw(audio)),
+                              allow_interruptions=allow_interruptions).wait_for_playout()
+            return
+        except Exception as e:  # noqa: BLE001 — Rime is US-only and fails mid-call
+            logger.warning("narrowband say failed (%s: %s); falling back to the plugin",
+                           type(e).__name__, e)
+    await session.say(text, allow_interruptions=allow_interruptions).wait_for_playout()
+
+
+# How long she gets to answer. She cannot read a clock, so this number only means
+# anything because the borrower page counts it down for her — see the `listening` event.
+TEACH_BACK_TIMEOUT_S = 30.0
+
+
 async def run_teach_back(session: AgentSession, fsm: ConsentFSM, clause: Clause,
                          question: str, answers: asyncio.Queue[str],
-                         timeout: float = 30.0) -> dict:
+                         timeout: float = TEACH_BACK_TIMEOUT_S,
+                         pool: RimeSocketPool | None = None) -> dict:
     """Ask the borrower to explain the clause back, grade it, apply it to the FSM."""
-    await session.say(question).wait_for_playout()
+    # DROP EVERYTHING SAID BEFORE THE QUESTION. wire_transcripts queues every final
+    # transcript for the whole call, including whatever she says while a clause is being
+    # read — a "हाँ", a cough picked up as speech, the tail of her previous answer. The
+    # queue is FIFO, so one stray utterance during clause 1 is served as the ANSWER to
+    # clause 2, its leftover as the answer to clause 3, and so on down the call. Observed:
+    #   heard_you identity   'शून्य शून्य शून्य दो चार…'   <- her real answer
+    #   heard_you sanctioned 'हाँ'                          <- stale
+    #   heard_you tenure     'हाँ हाँ हाँ हाँ…'             <- staler
+    # It also made every later turn end instantly, because get() returned without waiting —
+    # so the borrower never saw the clause she was being asked to repeat.
+    stale = 0
+    while not answers.empty():
+        answers.get_nowait()
+        stale += 1
+    if stale:
+        logger.info("discarded %d utterance(s) spoken before the %s question",
+                    stale, clause.id)
+
+    await say_narrowband(session, pool, question, call_id=fsm.call_id)
+
+    # Tell her it is her turn. Until now the only cue that the agent had stopped talking
+    # and started waiting was the silence itself, and a borrower who does not know she is
+    # being waited for says nothing — which grades as `not_mentioned` and blocks consent on
+    # a clause she actually understood. The page turns this into a mic and a countdown.
+    events.emit(fsm.call_id, "listening", clause_id=clause.id, timeout_s=timeout,
+                # What she has to convey, in the form the agent just spoke it. Every clause
+                # carries exactly one value now, so this is one short phrase, not a list to
+                # memorise. The digits are already on screen; this is the spoken form of
+                # the same fact, so it leaks nothing the page was not already showing.
+                expect=[{"raw_text": kv.raw_text, "spoken_text": kv.spoken_text}
+                        for kv in clause.key_values])
     try:
         transcript = await asyncio.wait_for(answers.get(), timeout=timeout)
     except TimeoutError:
         transcript = ""
+    finally:
+        events.emit(fsm.call_id, "listening_done", clause_id=clause.id)
+
+    # Show her what was heard BEFORE grading, because grading can take an LLM round trip
+    # and a second of blank screen after she has spoken reads as "it did not hear me".
+    # This is her own words echoed back — recognition, not reading — and the verdict that
+    # follows is carried by colour, not by text.
+    events.emit(fsm.call_id, "heard_you", clause_id=clause.id, transcript=transcript)
 
     result = grade(clause, transcript)
     fsm.teach_back(clause.id, transcript=transcript, passed=result.passed,
@@ -414,17 +542,27 @@ async def run_consent_flow(session: AgentSession, fsm: ConsentFSM, clauses: list
                            max_attempts: int = 2) -> ConsentDecision | None:
     """The whole call: read, check, re-read on failure, then gate the consent utterance."""
     for clause in clauses:
-        for _ in range(max_attempts):
+        for attempt in range(max_attempts):
+            if attempt:
+                # Restarting a clause with no word of explanation sounds like a fault. She
+                # interrupted deliberately; tell her what is about to happen, and that it
+                # starts again rather than resuming. NOT interruptible — a second barge-in
+                # landing on this line would consume the last attempt and drop the clause.
+                await say_narrowband(session, pool,
+                                     "माफ़ कीजिए। मैं यह बात शुरू से दोबारा पढ़ता हूँ।",
+                                     allow_interruptions=False, call_id=fsm.call_id)
             await deliver_clause(session, fsm, clause, pool, ledger)
             if fsm.state(clause.id).value != "HEARD":
                 continue  # PARTIALLY_HEARD -> re-read from the START, never resume
             await run_teach_back(session, fsm, clause,
-                                 f"{clause.title_hi} के बारे में आपने क्या समझा?", answers)
+                                 f"{clause.title_hi} के बारे में आपने क्या समझा?", answers,
+                                 pool=pool)
             if fsm.state(clause.id).value == "UNDERSTOOD":
                 break
 
     finished_at = time.monotonic()
-    await session.say("क्या आप इन शर्तों पर सहमत हैं?").wait_for_playout()
+    await say_narrowband(session, pool, "क्या आप इन शर्तों पर सहमत हैं?",
+                         call_id=fsm.call_id)
 
     try:
         utterance = await asyncio.wait_for(answers.get(), timeout=60.0)
@@ -432,6 +570,29 @@ async def run_consent_flow(session: AgentSession, fsm: ConsentFSM, clauses: list
         return None
 
     return evaluate(fsm, utterance, latency_s=time.monotonic() - finished_at)
+
+
+def wire_touch_barge_in(room, session: AgentSession) -> None:
+    """The borrower page's stop button, which until now went nowhere.
+
+    web/call.html publishes {"t":"barge_in"} on the reliable data channel when she taps
+    stop. Nothing in this process was listening, so touch barge-in did nothing at all —
+    which mattered the moment voice barge-in was switched off, because then she had no way
+    to interrupt whatsoever.
+
+    Touch is the interruption path we can actually rely on: it does not care about room
+    acoustics, PA volume, or whether echo cancellation held up. It is also the only one
+    that works while SAMJHA_VOICE_BARGE_IN=0.
+    """
+    import contextlib as _ctx
+
+    def _on_data(packet) -> None:
+        with _ctx.suppress(Exception):
+            if json.loads(bytes(packet.data).decode()).get("t") == "barge_in":
+                logger.info("touch barge-in from the borrower")
+                session.interrupt()
+
+    room.on("data_received", _on_data)
 
 
 def wire_transcripts(session: AgentSession) -> asyncio.Queue[str]:
@@ -446,10 +607,33 @@ def wire_transcripts(session: AgentSession) -> asyncio.Queue[str]:
     return q
 
 
+_VAD = None
+
+
+def build_vad():
+    """Silero VAD, loaded once per process.
+
+    TURN_HANDLING asks for `"mode": "vad"`, and that option is inert unless a VAD is
+    actually handed to AgentSession — there is no error and no warning, interruption
+    detection simply never runs. The symptom is the agent reading a clause straight through
+    a borrower who is talking over it, which is precisely the behaviour this product exists
+    to make impossible: barge-in is how a clause becomes PARTIALLY_HEARD.
+
+    Loaded lazily and cached because it costs ~0.5 s and a call should not pay it twice.
+    """
+    global _VAD
+    if _VAD is None:
+        from livekit.plugins import silero
+
+        _VAD = silero.VAD.load()
+    return _VAD
+
+
 def build_session(*, llm=None) -> AgentSession:
     """The session, with the four dangerous defaults set before anything is built on them."""
     return AgentSession(
         stt=build_stt(),
+        vad=build_vad(),  # without this, TURN_HANDLING's "mode": "vad" does nothing at all
         tts=build_tts(),
         llm=llm,
         turn_handling=TURN_HANDLING,
@@ -481,6 +665,11 @@ def _demo() -> None:
     i = TURN_HANDLING["interruption"]
     assert i["resume_false_interruption"] is False
     assert i["backchannel_boundary"] == (0, 0)
+
+    # "mode": "vad" is inert without a VAD instance, and fails silently when it is missing.
+    assert i["mode"] != "vad" or build_vad() is not None, \
+        "interruption mode is 'vad' but build_vad() gave nothing — barge-in would not fire"
+    assert build_vad() is build_vad(), "VAD must be cached, not reloaded per call"
 
     print(f"  {len(frames)} frames of {FRAME_MS} ms from 1.000 s of mu-law")
     print(f"  interruption options: {i}")

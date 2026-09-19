@@ -22,12 +22,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SAMJHA — informed consent panel</title>
+<link rel="stylesheet" href="/tokens.css">
 <style>
-:root{
-  --paper:#f4f3ef; --card:#ffffff; --ink:#14161a; --dim:#5a6069; --rule:#d9d6cf;
-  --unheard:#6b7280; --partial:#c2410c; --heard:#1d4ed8; --fail:#b91c1c; --understood:#15803d;
-  --unheard-bg:#f3f4f6; --partial-bg:#fff5eb; --heard-bg:#eff5ff; --fail-bg:#fef4f4; --understood-bg:#f0fdf4;
-}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
@@ -41,7 +37,7 @@ a{color:#1d4ed8}
 
 /* ------------------------------------------------------------------ header */
 header{
-  position:sticky; top:0; z-index:10; background:#14161a; color:#fff;
+  position:sticky; top:0; z-index:10; background:var(--panel); color:var(--ink);
   border-bottom:4px solid #000; padding:10px 20px;
 }
 .top{display:flex; flex-wrap:wrap; gap:16px; align-items:center; justify-content:space-between}
@@ -55,12 +51,12 @@ header{
   border-radius:3px; padding:6px 11px; font-size:14px; font-weight:600; letter-spacing:.02em;
 }
 .badge b{color:#8fb6ff; font-size:10px; letter-spacing:.12em; text-transform:uppercase}
-.badge .v{color:#fff}
-.badge .hot{color:#ffd479}
+.badge .v{color:var(--ink)}
+.badge .hot{color:var(--amber)}
 .dot{width:9px; height:9px; border-radius:50%; background:#38bd6f; animation:pulse 2s infinite}
 .dot.off{background:#6b7280; animation:none}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-.disclose{margin-top:7px; font-size:11.5px; color:#9aa2ae; letter-spacing:.01em}
+.disclose{margin-top:7px; font-size:11.5px; color:var(--dim); letter-spacing:.01em}
 
 /* -------------------------------------------------------------------- shell */
 main{max-width:1500px; margin:0 auto; padding:18px 20px 40px; display:grid;
@@ -87,13 +83,13 @@ h2{font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--d
 
 /* State chip: the single biggest element per row. */
 .chip{
-  display:block; text-align:center; padding:9px 6px; border-radius:3px; color:#fff;
+  display:block; text-align:center; padding:9px 6px; border-radius:3px; color:var(--bg);
   font-size:17px; font-weight:800; letter-spacing:.07em; background:var(--unheard);
 }
 .chip .hi{display:block; font-size:12px; font-weight:600; letter-spacing:.02em; opacity:.92}
 .blocked{
   margin-top:7px; text-align:center; font-size:12px; font-weight:800; letter-spacing:.09em;
-  color:#7c2d12; background:#fed7aa; border:1px solid #fb923c; border-radius:3px;
+  color:var(--amber); background:var(--amber-bg); border:1px solid var(--amber); border-radius:3px;
   padding:5px; display:none; animation:blink 1.4s ease-in-out infinite;
 }
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.45}}
@@ -103,33 +99,33 @@ h2{font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--d
    digits and both became unreadable at video bitrates. */
 .barrow{display:flex; align-items:center; gap:11px; margin-top:16px}
 .bar{position:relative; flex:1; height:22px; border:1px solid var(--rule); border-radius:2px;
-     background:repeating-linear-gradient(135deg,#eceae5 0 7px,#e2dfd8 7px 14px)}
+     background:repeating-linear-gradient(135deg,var(--panel-2) 0 7px,var(--line) 7px 14px)}
 .bar i{display:block; height:100%; width:0; background:var(--unheard);
        transition:width .75s cubic-bezier(.3,.7,.3,1), background-color .5s ease}
-.readout{font-size:13.5px; font-weight:700; color:#2c3038; white-space:nowrap;
+.readout{font-size:13.5px; font-weight:700; color:var(--ink); white-space:nowrap;
          min-width:158px; text-align:right}
-.tick{position:absolute; top:-3px; bottom:-3px; width:3px; background:#111; opacity:.85}
-.tick.miss{background:#dc2626; width:4px}
-.cut{position:absolute; top:-13px; bottom:-3px; width:3px; background:#dc2626}
+.tick{position:absolute; top:-3px; bottom:-3px; width:3px; background:var(--ink); opacity:.85}
+.tick.miss{background:var(--red); width:4px}
+.cut{position:absolute; top:-13px; bottom:-3px; width:3px; background:var(--red)}
 .cut::after{content:"CUT"; position:absolute; top:-13px; left:-10px; font-size:10px;
-            font-weight:800; color:#dc2626; letter-spacing:.09em}
+            font-weight:800; color:var(--red); letter-spacing:.09em}
 
 /* which key values were actually heard */
 .kvs{display:flex; flex-wrap:wrap; gap:7px; margin-top:9px}
 .kv{border:1px solid var(--rule); border-radius:3px; padding:5px 9px; font-size:13px;
-    background:#fafaf8; display:flex; gap:8px; align-items:baseline}
+    background:var(--panel-2); display:flex; gap:8px; align-items:baseline}
 .kv .mark{font-weight:800; font-size:15px}
 .kv .lbl{font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:var(--dim)}
 .kv .val{font-weight:700; font-size:15px}
 .kv .spoken{color:var(--dim); font-size:12.5px}
-.kv.yes{border-color:#86efac; background:#f0fdf4}
+.kv.yes{border-color:var(--go-deep); background:var(--go-bg)}
 .kv.yes .mark{color:var(--understood)}
-.kv.no{border-color:#fca5a5; background:#fef2f2}
+.kv.no{border-color:var(--red); background:var(--red-bg)}
 .kv.no .mark{color:var(--fail)}
-.kv.no .val{text-decoration:line-through; text-decoration-color:#dc2626}
+.kv.no .val{text-decoration:line-through; text-decoration-color:var(--red)}
 
 .reason{margin-top:8px; font-size:13px; color:#3d434c}
-.trace{margin-top:6px; font-size:13.5px; font-weight:800; letter-spacing:.05em; color:#111;
+.trace{margin-top:6px; font-size:13.5px; font-weight:800; letter-spacing:.05em; color:var(--ink);
        opacity:0; transition:opacity .4s ease}
 .trace.on{opacity:1}
 
@@ -139,7 +135,7 @@ h2{font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--d
 .clause[data-state=TEACH_BACK_FAIL]{border-left-color:var(--fail);       background:var(--fail-bg)}
 .clause[data-state=UNDERSTOOD]     {border-left-color:var(--understood); background:var(--understood-bg)}
 .clause[data-state=PARTIALLY_HEARD]{border-left-width:14px; border-left-color:var(--partial);
-  background:var(--partial-bg); box-shadow:inset 0 0 0 2px #fb923c}
+  background:var(--partial-bg); box-shadow:inset 0 0 0 2px var(--amber)}
 .clause[data-state=PARTIALLY_HEARD]::before{
   content:""; position:absolute; inset:0; pointer-events:none; opacity:.16;
   background:repeating-linear-gradient(45deg,#c2410c 0 14px,transparent 14px 28px);
@@ -170,16 +166,21 @@ h2{font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--d
 .verdict .d{font-size:30px; font-weight:900; letter-spacing:.06em}
 .verdict.REFUSED{border-color:var(--fail); background:var(--fail-bg)} .verdict.REFUSED .d{color:var(--fail)}
 .verdict.GRANTED{border-color:var(--understood); background:var(--understood-bg)} .verdict.GRANTED .d{color:var(--understood)}
-.verdict.PENDING{border-color:var(--dim); background:#f8f8f6} .verdict.PENDING .d{color:var(--dim)}
+.verdict.PENDING{border-color:var(--dim); background:var(--panel-2)} .verdict.PENDING .d{color:var(--dim)}
 .verdict p{margin:5px 0 0; font-size:13px}
-.hash{margin:11px 0; font-size:11.5px; word-break:break-all; color:#2c3038;
-      background:#f6f5f2; border:1px dashed var(--rule); border-radius:3px; padding:8px}
+.hash{margin:11px 0; font-size:11.5px; word-break:break-all; color:var(--dim);
+      background:var(--panel-2); border:1px dashed var(--rule); border-radius:3px; padding:8px}
 .hash b{display:block; font-size:10px; letter-spacing:.14em; text-transform:uppercase;
         color:var(--dim); margin-bottom:3px; font-family:inherit}
 .refusal{border-left:5px solid var(--fail); background:var(--fail-bg); padding:8px 11px;
          margin-bottom:8px; font-size:13px}
 .refusal b{color:var(--fail); letter-spacing:.06em}
 table{width:100%; border-collapse:collapse; font-size:13px}
+/* The record table has five columns and lives in a ~460px sidebar as well as on
+   the full-width record page. Without a floor the sidebar crushes teach-back to
+   one word per line and the record reads as broken. Scroll instead of crush. */
+.tscroll{overflow-x:auto}
+.tscroll table{min-width:620px}
 th,td{text-align:left; padding:6px 7px; border-bottom:1px solid var(--rule); vertical-align:top}
 th{font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim)}
 td.st{font-weight:800; font-size:11.5px; letter-spacing:.05em; white-space:nowrap}
@@ -189,15 +190,17 @@ td.st[data-s=UNDERSTOOD]{color:var(--understood)}
 
 /* ticker */
 #ticker{max-height:280px; overflow:auto; font-size:13px}
-.tk{border-bottom:1px solid #eeece7; padding:6px 2px; display:flex; gap:9px}
-.tk time{color:#9aa2ae; font-size:11px; white-space:nowrap; padding-top:2px}
+.tk{border-bottom:1px solid var(--line); padding:6px 2px; display:flex; gap:9px}
+.tk time{color:var(--dim); font-size:11px; white-space:nowrap; padding-top:2px}
 .tk.pass b{color:var(--understood)} .tk.fail b{color:var(--fail)}
 
 /* start screen / buttons */
 button{font:inherit; font-weight:700; letter-spacing:.04em; padding:9px 15px; cursor:pointer;
-       border:1px solid var(--ink); background:var(--ink); color:#fff; border-radius:3px}
-button.ghost{background:#fff; color:var(--ink)}
-input[type=text]{font:inherit; padding:9px 11px; border:1px solid var(--rule); border-radius:3px}
+       border:1px solid var(--ink); background:var(--ink); color:var(--bg); border-radius:3px}
+button.ghost{background:transparent; color:var(--ink)}
+input[type=text]{font:inherit; padding:9px 11px; border:1px solid var(--rule);
+  border-radius:3px; background:var(--panel-2); color:var(--ink)}
+input[type=text]::placeholder{color:var(--dim)}
 .row{display:flex; gap:9px; flex-wrap:wrap; align-items:center}
 .note{font-size:12.5px; color:var(--dim); margin-top:9px}
 footer{max-width:1500px; margin:0 auto; padding:0 20px 34px; font-size:12px; color:var(--dim)}
@@ -384,7 +387,7 @@ function applyClause(ev) {
        <span><span class="lbl">${esc(KIND_LABEL[kv.kind] || kv.kind)}</span><br>
        <span class="val">${esc(kv.raw_text)}</span>
        ${kv.spoken_text ? `<span class="spoken"> · ${esc(kv.spoken_text)}</span>` : ""}
-       ${kv.heard ? "" : `<span class="lbl" style="color:#b91c1c"> not heard</span>`}</span>
+       ${kv.heard ? "" : `<span class="lbl" style="color:var(--red)"> not heard</span>`}</span>
      </span>`).join("");
 
   $(".reason", el).textContent = ev.reason || "";
@@ -443,16 +446,16 @@ function renderRecord(sealed) {
   const d = (rec.consent || {}).decision || "PENDING";
   const rows = (rec.clauses || []).map((c) =>
     `<tr><td>${esc(c.title_hi || c.clause_id)}<br>
-       <span class="lbl" style="font-size:11px;color:#5a6069">${esc(c.clause_id)}</span></td>
+       <span class="lbl" style="font-size:11px;color:var(--dim)">${esc(c.clause_id)}</span></td>
      <td class="st" data-s="${esc(c.final_state)}">${esc(c.final_state)}</td>
-     <td>${c.heard_through_pct}%<br><span style="font-size:11px;color:#5a6069">
+     <td>${c.heard_through_pct}%<br><span style="font-size:11px;color:var(--dim)">
        ${c.heard_through_s}/${c.total_duration_s}s</span></td>
      <td>${(c.key_values || []).map((k) =>
-       `<span style="color:${k.heard ? "#15803d" : "#b91c1c"}">${k.heard ? "✓" : "✗"}
+       `<span style="color:${k.heard ? "var(--go)" : "var(--red)"}">${k.heard ? "✓" : "✗"}
         ${esc(k.raw_text)}</span>`).join("<br>")}</td>
      <td>${(c.teach_back || []).map((t) =>
-       `<b style="color:${t.passed ? "#15803d" : "#b91c1c"}">${t.passed ? "PASS" : "FAIL"}</b>
-        ${esc(t.transcript)}<br><span style="font-size:11px;color:#5a6069">${esc(t.grade)}</span>`
+       `<b style="color:${t.passed ? "var(--go)" : "var(--red)"}">${t.passed ? "PASS" : "FAIL"}</b>
+        ${esc(t.transcript)}<br><span style="font-size:11px;color:var(--dim)">${esc(t.grade)}</span>`
        ).join("<br>") || "—"}</td></tr>`).join("");
 
   $("#rec-mode").textContent = rec.mode ? `mode: ${rec.mode}` : "";
@@ -473,8 +476,8 @@ function renderRecord(sealed) {
       : "") +
     `<div class="hash mono"><b>${esc(sealed.hash_algorithm)} of the canonical record</b>
        ${esc(sealed.hash)}</div>
-     <table><thead><tr><th>Clause</th><th>Final state</th><th>Heard</th>
-       <th>Key values</th><th>Teach-back</th></tr></thead><tbody>${rows}</tbody></table>
+     <div class="tscroll"><table><thead><tr><th>Clause</th><th>Final state</th><th>Heard</th>
+       <th>Key values</th><th>Teach-back</th></tr></thead><tbody>${rows}</tbody></table></div>
      <p class="note">Canonicalisation: <span class="mono">${esc(sealed.canonicalization)}</span>.
        <span class="mono">generated_at</span> is outside the hashed payload, so the same
        call always hashes to the same digest.
@@ -522,7 +525,7 @@ function connect(id) {
       case "teach_back":
         tick(ev.ts, `<b>teach-back ${ev.passed ? "PASS" : "FAIL"}</b> ·
           ${esc(ev.clause_id)}<br>«${esc(ev.transcript)}»<br>
-          <span style="color:#5a6069">${esc(ev.grade)}</span>`,
+          <span style="color:var(--dim)">${esc(ev.grade)}</span>`,
           ev.passed ? "pass" : "fail");
         break;
       case "consent":

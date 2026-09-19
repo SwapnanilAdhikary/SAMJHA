@@ -691,3 +691,165 @@ def test_no_two_clause_states_are_confusable():
     """A guard on the LOCKED enum: distinct values, and UNDERSTOOD alone permits consent."""
     assert all(a.value != b.value for a, b in combinations(ClauseState, 2))
     assert sum(1 for s in ClauseState if s is ClauseState.UNDERSTOOD) == 1
+
+
+# --- the session's VAD ------------------------------------------------------------------
+#
+# TURN_HANDLING asks for interruption mode "vad". That option is inert unless a VAD is
+# handed to AgentSession, and nothing errors or warns when it is missing — the agent just
+# reads straight through a borrower talking over it. Barge-in is how a clause becomes
+# PARTIALLY_HEARD, so a silent hole here removes the product's whole mechanic.
+
+
+def test_vad_is_loaded_and_cached():
+    from agent.session import build_vad
+
+    v = build_vad()
+    assert v is not None
+    assert build_vad() is v, "VAD must be cached per process, not reloaded per call"
+
+
+def test_session_is_built_with_a_vad_whenever_mode_is_vad():
+    import inspect
+
+    from agent.session import TURN_HANDLING, build_session
+
+    if TURN_HANDLING["interruption"]["mode"] != "vad":
+        pytest.skip("interruption mode is not 'vad'")
+
+    src = inspect.getsource(build_session)
+    assert "vad=" in src, (
+        "TURN_HANDLING sets interruption mode 'vad' but build_session() passes no vad= — "
+        "interruption detection will never run and barge-in will be ignored"
+    )
+
+
+def test_ledger_keeps_receiving_events_after_take():
+    """take() must not orphan the listener.
+
+    attach() used to register `self.events.append`, a bound method of one list object,
+    while take() rebound self.events to a fresh list. Every event after the first take()
+    went to the orphaned list, so the ledger reported played=0.0/interrupted=True forever.
+    deliver_clause() calls take() on its first line, so this fired before any clause was
+    delivered: every clause played in full, was recorded as interrupted, and was re-read.
+    """
+    from livekit.agents.voice.io import PlaybackFinishedEvent
+
+    from agent.session import PlayoutLedger
+
+    class _Emitter:
+        def __init__(self):
+            self._h = []
+
+        def on(self, _name, fn):
+            self._h.append(fn)
+
+        def emit(self, ev):
+            for fn in self._h:
+                fn(ev)
+
+    em = _Emitter()
+    ledger = PlayoutLedger()
+    ledger.attach(em)
+
+    ledger.take()  # exactly what deliver_clause does before each clause
+
+    em.emit(PlaybackFinishedEvent(playback_position=9.5, interrupted=False))
+    played, interrupted = ledger.take()
+    assert played == 9.5, f"ledger lost the event after take(); got {played}"
+    assert interrupted is False
+
+    # and again, for a second clause
+    ledger.take()
+    em.emit(PlaybackFinishedEvent(playback_position=4.0, interrupted=True))
+    played, interrupted = ledger.take()
+    assert (played, interrupted) == (4.0, True)
+
+
+def test_clause_delivery_honours_the_voice_barge_in_switch():
+    """allow_interruptions must follow VOICE_BARGE_IN, never be hardcoded True.
+
+    The env switch only sets the ACTIVITY-level default. An explicit allow_interruptions
+    on say() sets the speech HANDLE's flag, and that is what the VAD interrupt path gates
+    on — so a hardcoded True silently re-enabled every barge-in the switch was meant to
+    stop, and also disarmed LiveKit's own self-interruption guard. Measured in a live call:
+    the one line spoken with allow_interruptions=False ran 8.31s uncut while every clause
+    passing True was chopped after ~0.2s of mic energy.
+    """
+    import inspect
+
+    from agent import session as S
+
+    src = inspect.getsource(S.deliver_clause)
+    assert "allow_interruptions=True" not in src, (
+        "deliver_clause hardcodes allow_interruptions=True; it must pass VOICE_BARGE_IN"
+    )
+    assert "allow_interruptions=VOICE_BARGE_IN" in src
+
+
+def test_touch_barge_in_is_wired_to_the_agent():
+    """web/call.html publishes {"t":"barge_in"}; something must listen for it.
+
+    With voice barge-in off, the stop button is the borrower's ONLY way to interrupt. It
+    published into the void for the entire life of this code.
+    """
+    import inspect
+    from pathlib import Path
+
+    from agent import main as M
+    from agent import session as S
+
+    assert hasattr(S, "wire_touch_barge_in")
+    assert "barge_in" in inspect.getsource(S.wire_touch_barge_in)
+    assert "wire_touch_barge_in" in inspect.getsource(M.entrypoint), (
+        "the handler exists but the entrypoint never installs it"
+    )
+    # and the browser still sends exactly what the handler matches on
+    assert 't: "barge_in"' in Path("web/call.html").read_text()
+
+
+def test_teach_back_discards_utterances_spoken_before_the_question():
+    """A stray word during clause N must not become the ANSWER to clause N+1.
+
+    wire_transcripts queues every final transcript for the whole call, and the queue is
+    FIFO. Without a flush, one "हाँ" said while a clause was being read was served as the
+    answer to the next clause, its leftover to the one after that — and every later turn
+    returned instantly, so the borrower never saw the clause she had to repeat.
+    """
+    import asyncio
+
+    from agent.consent_fsm import ConsentFSM
+    from agent.session import run_teach_back
+    from kfs.clauses import Clause, KeyValue, Segment
+
+    clause = Clause(id="sanctioned", title_hi="मंज़ूर रकम", segments=[
+        Segment("आपको मंज़ूर हुई रकम है, पैंसठ हज़ार रुपए।",
+                key_value=KeyValue("rupee_amount", 65000, "₹65,000", "पैंसठ हज़ार रुपए")),
+    ])
+
+    class _Handle:
+        async def wait_for_playout(self):
+            return None
+
+    class _Session:
+        # say() is SYNC and returns a handle; the caller awaits wait_for_playout().
+        def say(self, *a, **kw):
+            return _Handle()
+
+    async def scenario():
+        answers: asyncio.Queue[str] = asyncio.Queue()
+        answers.put_nowait("हाँ")            # said while the CLAUSE was being read
+        answers.put_nowait("हाँ हाँ")        # and again
+        # the real answer arrives only after the question
+        asyncio.get_running_loop().call_later(
+            0.05, answers.put_nowait, "मुझे पैंसठ हज़ार रुपए मिलेंगे।")
+        fsm = ConsentFSM([clause], call_id="t-stale")
+        return await run_teach_back(_Session(), fsm, clause,
+                                    "मंज़ूर रकम के बारे में आपने क्या समझा?",
+                                    answers, timeout=3.0)
+
+    out = asyncio.run(scenario())
+    assert out["transcript"] == "मुझे पैंसठ हज़ार रुपए मिलेंगे।", (
+        f"stale utterance was used as the answer: {out['transcript']!r}"
+    )
+    assert out["passed"], out["grades"]

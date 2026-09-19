@@ -1,15 +1,114 @@
 # SAMJHA (समझा) — voice-native informed consent for Indian retail lending
 
+**Team harness** · DataForge × Pathway × Rime
+
 > **Status: end to end.** KFS pipeline (PDF **and** Word), document intake, consent agent,
-> eval harness and three web surfaces all built; **421 tests pass**. Measured results are
+> eval harness and three web surfaces all built; **434 tests pass**. Measured results are
 > in [`RIME_EVIDENCE.md`](RIME_EVIDENCE.md), against a test pre-registered in
 > [`evals/ACCEPTANCE.md`](evals/ACCEPTANCE.md) *before any product code existed*. Not yet
 > done: the human listening panel, the full 120-utterance eval run (see below), and a live
 > PSTN leg (out of scope — the channel is simulated).
 >
 > A 3-minute walkthrough of the whole flow is at
-> [`video/samjha_demo.mp4`](video/samjha_demo.mp4), and the deck is
-> [`ppt/samjha.pptx`](ppt/samjha.pptx).
+> [`video/samjha_demo.mp4`](video/samjha_demo.mp4), the deck is
+> [`ppt/samjha.pptx`](ppt/samjha.pptx), and the 9-minute talk it backs is scripted in
+> [`PRESENTATION.md`](PRESENTATION.md) — with the operational runbook, including the
+> borrower's own lines, in [`DEMO.md`](DEMO.md).
+
+---
+
+## Executive summary
+
+RBI requires every retail loan to come with a Key Facts Statement in a language the
+borrower understands, acknowledged as informed — but lenders satisfy it by emailing a PDF
+and collecting an OTP, so a borrower with low reading fluency acknowledges a document she
+cannot read. SAMJHA turns that document into a voice call: it parses the KFS
+deterministically from its table grid (PDF or Word, no OCR and no model in the loop),
+rewrites each clause into Hindi with **exactly one comprehension-critical value per
+spoken segment**, and reads it to her through Rime Coda over an 8 kHz μ-law telephone
+channel. Because μ-law at 8 kHz is one byte per sample, a segment's byte count *is* its
+duration, so "did she hear the account number?" reduces to arithmetic over Rime's own
+output — no vendor word timestamps, which Rime does not emit for Hindi anyway. A consent
+state machine then requires each value to be both **heard** (its segment finished
+playing) and **understood** (she explains it back in her own words) before consent can be
+recorded; interrupt the account number and the clause is marked `PARTIALLY_HEARD`,
+consent is **refused** even if she says yes, and the refusal is sealed into a sha256-hashed
+record beside the hash of the source document. Measured against a claim pre-registered
+before any product code existed, the delivery layer took Value Error Rate on account
+identifiers from **100% → 0%** (Deepgram) and **75% → 0%** (Sarvam) — while four of six
+categories showed no effect at all, which we report as the negative result it is.
+
+## Architecture
+
+One pipeline, drawn in two halves because it is twelve stages long. Half A turns a
+document into speech; half B turns speech into a consent decision. **Only half B is
+unusual** — half A is plumbing a competent team would build the same way.
+
+### A · document → speech
+
+```mermaid
+flowchart LR
+    DOC["<b>KFS document</b><br/>PDF or .docx<br/>uploaded by an officer,<br/>never by the borrower"]
+    EX["<b>kfs/extract.py</b><br/>deterministic table parse<br/>no OCR, no vision model"]
+    FLD{"<b>kfs/fields.py</b><br/>every Annex-A field<br/>actually READ?"}
+    HUM["<b>/intake</b><br/>a human types it,<br/>and is named in the record<br/><i>never defaulted to 0</i>"]
+    KFS[("<b>KFS · RBI Annex A</b><br/>+ sha256 of the bytes")]
+    NORM["<b>build_clauses → normalizer</b><br/>Hindi clause text<br/>ONE key value per segment"]
+    WS3["<b>Rime Coda · /ws3</b><br/>coda · taru · hi<br/>mulaw 8 kHz<br/>segment=never + flush"]
+    SEG["<b>8000 bytes = 1.000 s</b><br/>per-segment duration<br/>exact, not estimated"]
+
+    DOC --> EX --> FLD
+    FLD -->|"a field is missing"| HUM
+    HUM --> KFS
+    FLD -->|"complete"| KFS
+    KFS --> NORM --> WS3 --> SEG
+
+    classDef hot fill:#FFB020,stroke:#8A5A00,color:#2B1A00,font-weight:bold
+    class SEG,HUM hot
+```
+
+### B · speech → consent record
+
+```mermaid
+flowchart LR
+    SEG["<b>8000 bytes = 1.000 s</b><br/>segment boundaries"]
+    WS3["Rime /ws3 socket"]
+    LK(("LiveKit<br/>room"))
+    PHONE["<b>/c/call_id</b><br/>THE BORROWER<br/>one green button, no text"]
+    STT["Sarvam saaras<br/>Hindi STT"]
+    HEARD{"<b>HEARD?</b><br/>did the segment carrying<br/>THIS number finish?"}
+    TB{"<b>UNDERSTOOD?</b><br/>agent/teachback.py<br/>did she say it back?"}
+    FSM{{"agent/consent_fsm.py<br/>both true, for every value?"}}
+    REF["CONSENT REFUSED<br/>flagged for human callback"]
+    GR["CONSENT RECORDED"]
+    REC[("api/records.py<br/><b>sha256-sealed record</b><br/>clause states · heard-through %<br/>+ provenance of the document")]
+
+    SEG --> LK
+    LK <--> PHONE
+    LK -.->|barge-in closes the socket| WS3
+    PHONE -->|her voice| STT --> TB
+    SEG -->|segment boundaries| HEARD
+    LK -->|playback_position| HEARD
+    HEARD --> FSM
+    TB --> FSM
+    FSM -->|no| REF --> REC
+    FSM -->|yes| GR --> REC
+
+    classDef her fill:#1DB954,stroke:#0B6E31,color:#06240F,font-weight:bold
+    classDef hot fill:#FFB020,stroke:#8A5A00,color:#2B1A00,font-weight:bold
+    classDef bad fill:#FF5C5C,stroke:#8A1F1F,color:#2B0000,font-weight:bold
+    class PHONE,GR her
+    class SEG,HEARD,REC hot
+    class REF bad
+```
+
+**The load-bearing edges are the two that feed `HEARD?`.** That pair is the whole claim:
+*heard* is not "we played the file", it is "the segment carrying **this number** reached
+its last byte" — Rime's own byte counts on one side, LiveKit's measured playout on the
+other. Nothing on that path is estimated, asserted, or supplied by a model. Everything
+downstream of it — the refusal, the callback flag, the hash — is a consequence.
+
+---
 
 **Headline result.** Value Error Rate on account identifiers, 8 kHz μ-law channel,
 model/speaker/lang held constant: **100% → 0%** (Deepgram), **75% → 0%** (Sarvam).
@@ -30,15 +129,6 @@ That costs roughly 40 minutes of Sarvam audio against ~66 minutes of free credit
 **overwrites** `evals/results/` — as does a bare `make eval`, which is a 6-utterance smoke
 run. Every run is also archived under `evals/results/runs/<id>/`, so nothing is lost, but
 check `git diff evals/results/` before committing after any eval.
-
-RBI mandates a Key Facts Statement for every retail loan, in a language the borrower
-understands, with informed acknowledgement. In practice lenders email a PDF and collect an
-OTP. A borrower with low reading fluency — sold a loan over a phone call, where there is
-no screen — acknowledges a document she cannot read.
-
-SAMJHA reads the KFS aloud in Hindi, clause by clause; tracks which comprehension-critical
-values she actually **heard** before interrupting; requires her to explain the key terms
-back in her own words; and emits a consent record made of audio.
 
 **Remove speech and the product does not degrade — it ceases to exist.**
 
@@ -67,7 +157,7 @@ already here.
 ### Verify it, no keys required
 
 ```bash
-make test           # 421 tests
+make test           # 434 tests
 make demo-fixtures  # the two stress cases: barge-in and rushed consent
 make channel        # self-check the telephone-channel chain (needs ffmpeg)
 make secrets        # fail if a credential ever touched git history
@@ -76,6 +166,7 @@ make secrets        # fail if a credential ever touched git history
 ### Verify it against the live vendors
 
 ```bash
+make stage          # GO/NO-GO: keys, catalog, both processes, the tunnel, the fallbacks
 make preflight      # (modelId, speaker, lang) against Rime's LIVE catalog
 make eval           # the A/B, smoke run — see "Reproducing the numbers" below
 make serve          # then open /?demo=1
@@ -102,12 +193,35 @@ make prompts        # the borrower page's spoken Hindi (needs RIME_API_KEY) — 
 make serve          # terminal 1: the API and all three web surfaces
 make agent          # terminal 2: the consent agent worker
 cloudflared tunnel --url http://localhost:8000   # terminal 3: see the HTTPS note below
+
+make stage URL=https://<tunnel>.trycloudflare.com   # then: is all of that actually up?
 ```
+
+**Going fast, for a stage demo.** The identity clause opens with a greeting and an
+instruction to the borrower — **12.6s on `demo/demo_kfs.pdf` before the account number
+even starts**, out of a 20.9s clause. Neither segment carries an Annex-A field or a key
+value. `SAMJHA_SKIP_INTRO=1` drops exactly those two, so the call opens on the account
+number and reaches its first teach-back question in **about fifteen seconds** rather than
+twenty-eight. Measured over a real Rime run (`make e2e --drive`): the identity clause goes
+from 20.9s to 9.0–9.5s, and the whole ten-clause call from 159.3s to 145.7s.
+
+It drops no Annex-A field and no key value; it does drop the borrower being told she may
+interrupt, which is why it is opt-in, why `make stage` warns while it is on, and why the
+agent writes a `note` into the call's event log naming it. `tests/test_kfs.py` asserts
+that the two dropped segments are exactly the ones with no key value and that every key
+value survives in both arms.
+
+`make stage` is the pre-flight for a live call, and it is worth running before you rely on
+one in front of anybody. It checks the cross-process failures no single health endpoint can
+see — the worker in terminal 2 never started, the tunnel died, the Rime key is present but
+revoked — and prints the one command that fixes each. It exits non-zero on anything
+blocking, and names the fallback when it does.
 
 `make fixtures` and `make vendor` regenerate the documents and re-fetch the browser bundle;
 neither is needed on a fresh unzip, since both are already in the tree.
 
-Then open **`/intake`**, upload a KFS, and it hands you a borrower link.
+Then open **`/`**, drop a KFS on it, and it hands you a borrower link.
+(`/intake` still resolves to the same page; the root took it over.)
 
 ### Or drive the whole flow from one command
 
@@ -131,8 +245,8 @@ durations are estimates, not measurements.
 
 | Page | Who | What it is |
 |---|---|---|
-| `/` | The judge | The evidence panel: live clause state, provider badge, consent record |
-| `/intake` | A field officer or branch clerk | Upload, review every parsed field, correct what was not read, create the call |
+| `/` | A field officer or branch clerk | **Intake.** Drop a KFS in, review every parsed field, correct what was not read, create the call |
+| `/panel` | The judge | The evidence panel: live clause state, provider badge, consent record |
 | `/c/{call_id}` | **The borrower** | Near-textless. One green button. Everything spoken in Hindi |
 
 Uploading a PDF is itself a literacy-heavy act, so **the borrower does not do it** — the
@@ -243,12 +357,28 @@ evals/      ACCEPTANCE.md (pre-registered) · run_eval.py · asr_score.py · cha
             corpus/ (120 typed utterances) · results/ · human_panel/
 api/        main.py · store.py · records.py (hashed consent record)
             intake.py    — uploaded bytes -> a reviewable draft, with provenance
-web/        index.html   — the judge's panel: clause state, provider badge, ?demo=1
-            intake.html  — the officer's desk: upload, review, correct, create the call
+web/        intake.html  — THE ROOT (/): drop a KFS, review every field, create the call
+            index.html   — /panel and /record/{id}: clause state, provider badge, ?demo=1
             call.html    — THE BORROWER'S PAGE: one green button, spoken Hindi
             prompts.py   — pre-renders that Hindi through Rime
             vendor/      — pinned livekit-client, fetched by `make vendor`
 fixtures/   synthetic/ — 10 KFS documents as JSON, PDF and .docx. All synthetic.
 scripts/    battery.py (day-1 experiments) · smoke.py (credential checks)
             talk.py (be the borrower, from a terminal)
+            stagecheck.py — GO/NO-GO before a live demo (`make stage`)
+            answers.py   — the BORROWER's lines for a document (`make answers`),
+                           each one pre-checked against the teach-back grader
 ```
+
+---
+
+## Team harness
+
+Built for the DataForge × Pathway × Rime finals.
+
+- **Swapnanil Adhikary** — <swapnanil@tell-ia.com>
+
+Every commit in this repository is signed by its author; `git log --format='%an %ae'`
+is the record. The claim under test was pre-registered in
+[`evals/ACCEPTANCE.md`](evals/ACCEPTANCE.md) before any product code existed, and the
+commit timestamp on that file is the evidence for it.

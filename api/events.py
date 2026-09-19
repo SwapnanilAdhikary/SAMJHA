@@ -53,7 +53,15 @@ EVENT_TYPES = (
     "consent",
     "call_end",
     "note",
+    # Borrower-page cues. Not folded into any table — they drive her screen and nothing
+    # else, and they are deliberately absent from the sealed record.
+    "listening",       # the agent has asked and is now waiting; carries timeout_s
+    "listening_done",  # it stopped waiting, for any reason
+    "heard_you",       # the STT transcript, shown before grading finishes
+    "speaking",        # what the agent is saying right now; carries text and kind
 )
+
+# NOTE: this tuple is documentation, not a filter — normalize() passes any type through.
 
 CLAUSE_STATES = (
     "UNHEARD",

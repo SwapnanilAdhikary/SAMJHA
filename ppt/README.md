@@ -1,6 +1,6 @@
 # ppt/
 
-**`samjha.pptx`** — 12 slides, 16:9, dark to match the product.
+**`samjha.pptx`** — 10 slides, 16:9, dark to match the product.
 
 ```bash
 uv run python ppt/build_ppt.py
@@ -8,29 +8,44 @@ uv run python ppt/build_ppt.py
 
 It is generated from `build_ppt.py` rather than hand-made, so the deck cannot quietly
 drift from the code. Every figure on a slide is either produced by a `make` target or
-committed under `evals/results/`.
+committed under `evals/results/`. The build also asserts that no shape runs off the slide
+— every box here is placed by hand-computed Emu, and the way that breaks is silently.
+
+**The deck is the backdrop for [`../PRESENTATION.md`](../PRESENTATION.md), not the
+content.** That file carries the 9-minute timing, the demo beats and the failure playbook.
+Change the slide order here and that file is wrong.
 
 ## The slides
 
-| # | Slide |
-|---|---|
-| 1 | Title |
-| 2 | The problem — she acknowledges a document she cannot read |
-| 3 | What we built — document in, sealed consent record out; three surfaces |
-| 4 | `/intake` — nothing is ever guessed |
-| 5 | `/c/{id}` — one tap, everything else spoken |
-| 6 | The mechanic — "heard" means the segment carrying the number finished |
-| 7 | The artifact — a refusal is a row, not an error |
-| 8 | The measured result, **with its n** |
-| 9 | Four Rime findings we measured rather than assumed |
-| 10 | What we do not claim |
-| 11 | Run it |
-| 12 | Close |
+Inverted pyramid: the most valuable thing a judge could take away is on slide 2, before
+the problem statement and before the architecture.
 
-Slide 8 carries the n=24 caveat on the same slide as the headline numbers, deliberately.
+| # | Slide | Why here |
+|---|---|---|
+| 1 | Title | 10 seconds |
+| 2 | **96.6% heard → CONSENT REFUSED** | The single most valuable 30 seconds of the talk |
+| 3 | The problem — she acknowledges a document she cannot read | Now that they care |
+| 4 | **Architecture**, drawn not imported | The green band is the only unusual part |
+| 5 | **DEMO** — near-textless, plus a backup screenshot strip | 3.5 of the 9 minutes |
+| 6 | The mechanic — 8000 bytes = 1.000 s | The demo raises the question; this answers it |
+| 7 | The measured result, **with its n** | |
+| 8 | Four Rime findings we measured rather than assumed | First slide to cut if behind |
+| 9 | What we do not claim | |
+| 10 | Close + run it | |
+
+Slide 7 carries the n=24 caveat on the same slide as the headline numbers, deliberately.
 The first question from the floor will be about the n, and it is better answered before it
-is asked. Do not delete that block without also editing `README.md`, which says the same
-thing.
+is asked. Do not delete that block without also editing `README.md` and `PRESENTATION.md`,
+which say the same thing.
+
+Slide 5 is deliberately almost textless — you are demoing, not reading. The screenshot
+strip on it is a lifeboat: if the tunnel dies you still have the three surfaces on screen
+while you talk.
+
+Slide 4 is **drawn with python-pptx shapes rather than imported as an image**, for the same
+reason the deck is generated at all: a PNG in `img/` would go stale the first time the
+pipeline changed and nobody would notice until a judge asked about a box that no longer
+exists. The same architecture is in `README.md` as mermaid, which GitHub renders.
 
 ## Screenshots
 

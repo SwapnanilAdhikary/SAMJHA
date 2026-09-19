@@ -372,6 +372,31 @@ async def post_dispatch(call_id: str) -> dict:
     rest = url.replace("wss://", "https://").replace("ws://", "http://")
     lk = lkapi.LiveKitAPI(rest, key, secret)
     try:
+        # IDEMPOTENT, and that is the whole point of this block.
+        #
+        # This route is POSTed by the borrower page on every connect(), and connect() runs
+        # from the green button, from the mic-retry button, and again on every page reload.
+        # Nothing about a second POST looks wrong to LiveKit: it happily creates a SECOND
+        # dispatch for the same room, the worker accepts it, and now two agent jobs read
+        # the same ten clauses into the same room at once.
+        #
+        # Observed, in events/live-1b24f0b0.jsonl: clause_registered x20 for a ten-clause
+        # document, every `note` twice, call_end twice. What the borrower hears is two
+        # overlapping Hindi reads of DIFFERENT clauses — which sounds exactly like a single
+        # read being cut off mid-sentence, and makes barge-in look ignored, because
+        # interrupting one job leaves the other one talking.
+        # list_dispatch 404s when the room does not exist yet, which is the NORMAL case for
+        # the first dispatch — the borrower has not joined, so there is no room. A failure
+        # here must therefore mean "nothing dispatched yet", never "refuse to dispatch".
+        try:
+            existing = await lk.agent_dispatch.list_dispatch(room_name=call_id)
+        except Exception:
+            existing = []
+        live = [d for d in (existing or []) if d.agent_name == AGENT_NAME]
+        if live:
+            return {"call_id": call_id, "agent_name": AGENT_NAME,
+                    "dispatch_id": live[0].id, "reused": True}
+
         dispatch = await lk.agent_dispatch.create_dispatch(
             lkapi.CreateAgentDispatchRequest(
                 room=call_id,
@@ -388,7 +413,8 @@ async def post_dispatch(call_id: str) -> dict:
     finally:
         await lk.aclose()
 
-    return {"call_id": call_id, "agent_name": AGENT_NAME, "dispatch_id": dispatch.id}
+    return {"call_id": call_id, "agent_name": AGENT_NAME, "dispatch_id": dispatch.id,
+            "reused": False}
 
 
 @app.post("/demo")
@@ -469,6 +495,17 @@ def _page(name: str = "index.html") -> FileResponse:
 
 @app.get("/")
 def index() -> FileResponse:
+    """Intake. The first thing anyone does is put a document in.
+
+    This used to be the judge's evidence panel, which meant the root URL showed a panel
+    with nothing on it until someone had already gone to /intake and created a call. The
+    panel lives at /panel now; nothing else about it changed.
+    """
+    return _page("intake.html")
+
+
+@app.get("/panel")
+def panel_page() -> FileResponse:
     return _page()
 
 
@@ -486,6 +523,7 @@ def record_page(call_id: str) -> FileResponse:
 
 @app.get("/intake")
 def intake_page() -> FileResponse:
+    """Kept so that every link, bookmark and doc written before the swap still works."""
     return _page("intake.html")
 
 
@@ -508,6 +546,12 @@ def _asset(kind: str, name: str, suffix: str) -> FileResponse:
     if not path.is_file():
         raise HTTPException(404, f"no {kind}/{name}")
     return FileResponse(path)
+
+
+@app.get("/tokens.css")
+def tokens_asset() -> FileResponse:
+    """The one palette all three surfaces load. See web/tokens.css."""
+    return FileResponse(WEB / "tokens.css", media_type="text/css")
 
 
 @app.get("/vendor/{name}")

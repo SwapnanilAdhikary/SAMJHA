@@ -283,15 +283,18 @@ class TestThreeSurfaces:
 
     def test_each_surface_is_served(self, client):
         call = client.post("/calls", json={}).json()
-        for path in ("/", "/intake", f"/c/{call['id']}", f"/record/{call['id']}"):
+        for path in ("/", "/panel", "/intake", f"/c/{call['id']}", f"/record/{call['id']}"):
             r = client.get(path)
             assert r.status_code == 200, path
             assert r.headers["content-type"].startswith("text/html")
 
     def test_the_judge_panel_markers_are_untouched(self, client):
-        """tests/test_api.py:172 asserts these literals. The intake link must not disturb
-        them, and neither must anything else this change touched."""
-        body = client.get("/").text
+        """tests/test_api.py asserts these literals. The intake link must not disturb
+        them, and neither must anything else this change touched.
+
+        The panel moved from "/" to "/panel" when intake took the root URL.
+        """
+        body = client.get("/panel").text
         for marker in ("LIVE CLAUSE STATE", "CONSENT BLOCKED", "PARTIALLY_HEARD"):
             assert marker in body
 
@@ -302,7 +305,7 @@ class TestThreeSurfaces:
         assert 'type="file"' not in body
         assert 'type="text"' not in body
 
-    @pytest.mark.parametrize("page", ["/", "/intake", "/c/x"])
+    @pytest.mark.parametrize("page", ["/", "/panel", "/intake", "/c/x"])
     def test_no_surface_loads_anything_off_origin(self, client, page):
         """A demo must not depend on a CDN or a font host being reachable.
 
@@ -404,3 +407,17 @@ class TestToken:
         monkeypatch.setenv("LIVEKIT_API_SECRET", secret)
         call = client.post("/calls", json={}).json()
         assert secret not in client.get(f"/calls/{call['id']}/token").text
+
+
+def test_root_is_intake_and_intake_still_works(client):
+    """The root URL is the document upload, and the old /intake link still resolves.
+
+    Everything written before the swap — DEMO.md, PRESENTATION.md, the README, a judge's
+    bookmark — says /intake. Moving the route must not break any of them.
+    """
+    root = client.get("/")
+    old = client.get("/intake")
+    assert root.status_code == old.status_code == 200
+    assert root.text == old.text, "/ and /intake must serve the same page"
+    assert "Drop a KFS here" in root.text, "the root is not the upload page"
+    assert "LIVE CLAUSE STATE" not in root.text.upper(), "the root is still the panel"

@@ -36,11 +36,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#0b0d12">
 <title>SAMJHA</title>
+<link rel="stylesheet" href="/tokens.css">
 <style>
-  :root {
-    --bg:#0b0d12; --ink:#f2f5fb; --dim:#98a1b6; --line:#242a38;
-    --go:#1db954; --go-deep:#0f7a37; --amber:#ffb020; --red:#ff5c5c; --heard:#3ddc84;
-  }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html, body { height:100%; }
   body {
@@ -112,10 +109,61 @@
   .mic-ring.live { background:var(--amber); }
   .mic-ring svg { width:36px; height:36px; }
 
+  /* Her turn to speak. Amber, pulsing, and impossible to mistake for the reading state. */
+  .turn { display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .turn-word { font-size:30px; font-weight:800; color:var(--amber);
+               animation:breathe 1.6s ease-in-out infinite; }
+  @keyframes breathe { 0%,100% { opacity:1 } 50% { opacity:.45 } }
+  .turn-ring { position:relative; width:92px; height:92px; }
+  .turn-ring svg { width:92px; height:92px; transform:rotate(-90deg); }
+  .turn-ring circle { fill:none; stroke-width:3.5; }
+  .turn-ring .trk { stroke:#202634; }
+  .turn-ring .run { stroke:var(--amber); stroke-linecap:round;
+                    stroke-dasharray:100.5; transition:stroke-dashoffset .95s linear; }
+  .turn-num { position:absolute; inset:0; display:grid; place-items:center;
+              font-size:30px; font-weight:800; color:var(--amber);
+              font-variant-numeric:tabular-nums; }
+  .turn.ending .turn-word, .turn.ending .turn-num, .turn.ending .run { color:var(--red); }
+  .turn.ending .run { stroke:var(--red); }
+
+  /* While she is meant to be TALKING there is nothing playing to stop, and a large red
+     button on screen reads as "press this to speak" — the first person to use this asked
+     exactly that. Remove it from her turn entirely rather than explain it. */
+  .listening .stack { display:none; }
+  /* #incall is space-between for the reading state (arcs top, stop button bottom). With
+     the stack gone that pushes the countdown onto the bottom edge, where a phone's home
+     indicator clips it. Centre the remaining content for her turn. */
+  #incall.listening { justify-content:center; gap:30px; }
+
+  .expect { font-size:21px; font-weight:700; color:var(--ink); max-width:min(86vw,340px);
+            background:#1a1f2b; border:1px solid var(--line); border-radius:10px;
+            padding:10px 14px; line-height:1.4; }
+
+  .convo { display:flex; flex-direction:column; gap:9px; max-width:min(86vw,360px);
+           width:100%; border-top:1px solid var(--line); padding-top:12px; }
+  /* The agent, left. Muted — it is being SPOKEN, the screen is only a receipt of it. */
+  .said { align-self:flex-start; text-align:left; font-size:16px; line-height:1.4;
+          color:var(--dim); border-left:3px solid var(--line); padding-left:10px; }
+  .said.clause { color:var(--ink); border-left-color:var(--amber); }
+  /* The question, kept separate from the clause so that asking does not erase the very
+     sentence she is being asked to repeat. */
+  .asked { align-self:flex-start; text-align:left; font-size:16px; line-height:1.4;
+           color:var(--dim); padding-left:13px; }
+  /* Her, right. */
+  .heard { align-self:flex-end; text-align:right; max-width:100%;
+           font-size:19px; line-height:1.45; color:var(--dim); }
+  .heard.pass { color:var(--heard); }
+  .heard.fail { color:var(--amber); }
+  .heard:empty { display:none; }
+
   .stack { display:flex; flex-direction:column; align-items:center; gap:14px; }
   .ok  { color:var(--heard); }
   .bad { color:var(--amber); }
   [hidden] { display:none !important; }
+.oplink{position:fixed; left:0; right:0; bottom:18px; text-align:center;
+        font-size:12px; letter-spacing:.08em; color:var(--dim); text-decoration:none;
+        font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.oplink:hover{color:var(--ink); text-decoration:underline}
 </style>
 </head>
 <body>
@@ -155,6 +203,30 @@
     <div class="small hi" id="clause-hint"></div>
   </div>
 
+  <!-- HER TURN. Hidden until the agent is actually waiting. Devanagari word plus a ring
+       that empties: she cannot read a clock, but she can see something running out. -->
+  <div class="turn" id="turn" hidden>
+    <div class="turn-word hi">बोलिए</div>
+    <div class="turn-ring"><svg viewBox="0 0 36 36">
+      <circle class="trk" cx="18" cy="18" r="16"/>
+      <circle class="run" id="turn-arc" cx="18" cy="18" r="16"/>
+    </svg><span class="turn-num" id="turn-num">30</span></div>
+    <!-- The one fact she has to say back. Every clause carries exactly one now, so this is
+         a phrase and not a list — the previous design bundled up to four charges into one
+         clause and failed all four when she forgot the last. -->
+    <div class="expect hi" id="expect" hidden></div>
+  </div>
+
+  <!-- The conversation, both sides. OUTSIDE #turn on purpose: endTurn() hides #turn, and
+       these have to outlive her turn so the PASS/FAIL colour lands on words still on
+       screen. Two speakers, told apart by side and colour rather than by a label she
+       would have to read. -->
+  <div class="convo" id="convo" hidden>
+    <div class="said hi" id="said" hidden></div>
+    <div class="asked hi" id="asked" hidden></div>
+    <div class="heard hi" id="heard" hidden></div>
+  </div>
+
   <div class="stack">
     <div class="mic-ring" id="mic-ring"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V22h2v-3.1A7 7 0 0 0 19 12h-2z"/></svg></div>
     <!-- Barge-in by TOUCH as well as by voice. The VAD already interrupts on speech; a
@@ -171,6 +243,11 @@
   <div id="done-glyph"></div>
   <div class="say hi" id="done-say"></div>
   <div class="small hi" id="done-detail"></div>
+  <!-- Latin, small, and low on the screen ON PURPOSE. The borrower cannot read it and is
+       not meant to: her outcome is the glyph and the Hindi line above. This is the
+       operator's way out of the call and into the sealed record, and it is the only
+       affordance on this page aimed at anyone but her. -->
+  <a id="done-record" class="oplink" hidden>open the consent record &rarr;</a>
 </section>
 
 <!-- 4 · BLOCKED (insecure context: the microphone cannot work here) -->
@@ -248,14 +325,34 @@ function unlockAudio() {
   }
 }
 
+function hush() {
+  // The agent is the only voice that matters once it starts. speechSynthesis QUEUES
+  // rather than replaces, so without an explicit cancel every prompt stacks up behind
+  // the last one and is still talking while Rime reads her loan — two voices at once,
+  // and the borrower cannot tell which one is the disclosure.
+  $("#prompt").pause();
+  try { window.speechSynthesis?.cancel(); } catch { /* not everywhere */ }
+}
+
+let sayingKey = null;
+
 function say(key) {
   const el = $("#prompt");
+  // Two code paths legitimately ask for the same prompt in a row (the tap, then connect).
+  // Restarting a clip she is already hearing sounds like a stutter, so ignore the repeat.
+  if (sayingKey === key && !el.paused) return;
+  sayingKey = key;
   el.onerror = null;
+  hush();               // a new prompt REPLACES the previous one, never queues behind it
+  // A 404 (prompts not synthesized) fires BOTH paths: play() rejects with
+  // NotSupportedError and the element fires `error`. Without this guard the fallback
+  // voice says every prompt twice.
+  let spoke = false;
+  const fallback = () => { if (spoke) return; spoke = true; speak(SPOKEN[key]); };
   el.src = `/prompts/${key}.wav`;
+  el.onerror = fallback;
   const spoken = el.play();
-  if (spoken && spoken.catch) spoken.catch(() => speak(SPOKEN[key]));
-  // A 404 (prompts not synthesized) surfaces as an error event, not a rejection.
-  el.onerror = () => speak(SPOKEN[key]);
+  if (spoken && spoken.catch) spoken.catch(fallback);
 }
 
 function speak(text) {
@@ -354,11 +451,25 @@ function onEvent(ev) {
   switch (ev.type) {
     case "clause_registered":
     case "clause_state":
+      if (ev.type === "clause_state" && ev.active) { endTurn(); clearHeard(); }
       applyClause(ev);
       break;
+    case "listening":
+      startTurn(Number(ev.timeout_s) || 30, ev.expect);
+      break;
+    case "listening_done":
+      endTurn();
+      break;
+    case "speaking":
+      showSaid(ev.text, ev.kind, ev.clause_id);
+      break;
+    case "heard_you":
+      showHeard(ev.transcript, null);
+      break;
     case "teach_back":
-      $("#incall").classList.add("listening");
-      $("#mic-ring").classList.add("live");
+      endTurn();
+      // The transcript is already on screen from heard_you; just colour the verdict.
+      showHeard(ev.transcript, !!ev.passed);
       $("#clause-hint").textContent = ev.passed
         ? "ठीक है" : "कोई बात नहीं। फिर से सुनिए।";
       break;
@@ -369,6 +480,117 @@ function onEvent(ev) {
       if ($("#done").classList.contains("on") === false) finish(null);
       break;
   }
+}
+
+// ------------------------------------------------------------------ her turn
+
+let turnTimer = null;
+const TURN_CIRC = 100.5;   // 2*pi*r for r=16, matching the svg above
+
+function startTurn(seconds, expect) {
+  endTurn();
+  // Only her side. The question she is answering stays on screen while she answers it.
+  $("#heard").hidden = true;
+  $("#heard").textContent = "";
+  const turn = $("#turn"), num = $("#turn-num"), arc = $("#turn-arc");
+  turn.hidden = false;
+  turn.classList.remove("ending");
+  $("#incall").classList.add("listening");
+  $("#mic-ring").classList.add("live");
+
+  // Spoken form, not the digits — the digits are already up top in 40pt. This is the
+  // shape of the sentence she has to produce.
+  const ex = $("#expect");
+  const want = (expect || []).map((k) => k.spoken_text || k.raw_text).filter(Boolean);
+  ex.textContent = want.join(" · ");
+  ex.hidden = want.length === 0;
+
+  let left = Math.round(seconds);
+  const paint = () => {
+    num.textContent = left;
+    arc.style.strokeDashoffset = String(TURN_CIRC * (1 - left / seconds));
+    // Red for the last five seconds. She cannot read "hurry up"; she can see red.
+    turn.classList.toggle("ending", left <= 5);
+  };
+  paint();
+  turnTimer = setInterval(() => {
+    left -= 1;
+    if (left <= 0) { paint(); endTurn(); return; }
+    paint();
+  }, 1000);
+}
+
+function showConvo() { $("#convo").hidden = false; }
+
+// The clause is read segment by segment, but she is asked to repeat the WHOLE clause —
+// so the segments accumulate here instead of replacing one another, and the question goes
+// in its own element. Replacing meant that by the time she had to repeat the sentence, the
+// sentence was no longer on screen: she saw only the question.
+let saidParts = [];
+let saidClause = null;
+
+function showSaid(text, kind, clauseId) {
+  const t = (text || "").trim();
+  if (!t) return;
+
+  if (kind === "clause") {
+    // Reset on the clause ITSELF changing, not on a clause_state event arriving. Keying
+    // this off clause_state meant the previous clause's sentence was still on screen while
+    // she was being asked about the next one — she would have repeated the wrong thing.
+    if (clauseId && clauseId !== saidClause) {
+      saidClause = clauseId;
+      saidParts = [];
+      $("#asked").hidden = true;
+      $("#asked").textContent = "";
+      $("#heard").hidden = true;
+      $("#heard").textContent = "";
+    }
+    if (!saidParts.includes(t)) saidParts.push(t);   // a re-read must not double it up
+    const el = $("#said");
+    el.textContent = saidParts.join(" ");
+    el.className = "said hi clause";
+    el.hidden = false;
+  } else {
+    const el = $("#asked");
+    el.textContent = t;
+    el.hidden = false;
+  }
+  showConvo();
+}
+
+function showHeard(text, passed) {
+  const el = $("#heard");
+  const t = (text || "").trim();
+  if (!t) {
+    // She said nothing. Saying so is kinder, and more honest, than an empty box.
+    el.textContent = passed === null ? "" : "कुछ सुनाई नहीं दिया";
+    el.className = "heard hi fail";
+    el.hidden = passed === null;
+    if (!el.hidden) showConvo();
+    return;
+  }
+  el.textContent = "«" + t + "»";
+  el.className = "heard hi" + (passed === null ? "" : passed ? " pass" : " fail");
+  el.hidden = false;
+  showConvo();
+}
+
+function clearHeard() {
+  saidParts = [];
+  saidClause = null;
+  for (const id of ["#heard", "#said", "#asked"]) {
+    $(id).hidden = true;
+    $(id).textContent = "";
+  }
+  $("#convo").hidden = true;
+}
+
+function endTurn() {
+  if (turnTimer) { clearInterval(turnTimer); turnTimer = null; }
+  $("#turn").hidden = true;
+  $("#expect").hidden = true;
+  $("#incall").classList.remove("listening");
+  $("#mic-ring").classList.remove("live");
 }
 
 function finish(ev) {
@@ -382,13 +604,18 @@ function finish(ev) {
   // Amber, not red. If refusal looks like rejection, every borrower who sees one learns
   // that the honest path is the punished path.
   $("#done-say").className = "say hi " + (granted ? "ok" : "bad");
+  endTurn();
   $("#done-detail").textContent = granted ? "" : "हमारा प्रतिनिधि आपको फिर कॉल करेगा";
+  const rec = $("#done-record");
+  rec.href = `/record/${encodeURIComponent(CALL_ID)}`;
+  rec.hidden = false;
   show("done");
 }
 
 // ------------------------------------------------------------------ the call
 
 let room = null;
+let dispatched = false;
 
 async function connect() {
   say("connecting");
@@ -404,13 +631,26 @@ async function connect() {
   const { url, token } = await r.json();
 
   const LK = window.LivekitClient;
-  room = new LK.Room({ adaptiveStream: false, dynacast: false });
+  room = new LK.Room({
+    adaptiveStream: false,
+    dynacast: false,
+    // Without these the laptop mic hears the agent's own voice out of the laptop speakers,
+    // the server-side VAD reads that as the borrower talking, and the agent interrupts
+    // ITSELF — every clause chopped a second or two in. Browser defaults usually enable
+    // AEC, but "usually" is not a thing to find out about on stage, so ask explicitly.
+    audioCaptureDefaults: {
+      echoCancellation: true,
+      noiseSuppression: true,
+      autoGainControl: true,
+    },
+  });
 
   // TRAP 3: without this the call is silent. Connecting and publishing the microphone is
   // not enough — the agent's track has to be attached to an element, and playback may
   // still be blocked until startAudio() is called from the user's gesture context.
   room.on(LK.RoomEvent.TrackSubscribed, (track) => {
     if (track.kind === LK.Track.Kind.Audio) {
+      hush();   // the page stops talking the instant the agent starts
       track.attach($("#agent"));
       $("#agent").play().catch(() => {});
     }
@@ -429,6 +669,12 @@ async function connect() {
 
   // Explicit dispatch: the worker registers with an agent_name and takes dispatches only,
   // so it never joins rooms belonging to other apps sharing these credentials.
+  // connect() runs from the green button, from the mic-retry button, and again on every
+  // page reload. Each of those used to POST another dispatch, LiveKit created another one,
+  // and a SECOND agent job joined and read the same ten clauses over the top of the first.
+  // The server is idempotent now; this just avoids the pointless round trip.
+  if (dispatched) return;
+  dispatched = true;
   fetch(`/calls/${encodeURIComponent(CALL_ID)}/dispatch`, { method: "POST" })
     .then(async (res) => {
       if (!res.ok) {
@@ -494,7 +740,12 @@ function watch() {
 
 $("#btn-take").addEventListener("click", async () => {
   unlockAudio();          // SYNCHRONOUS, before any await. Trap 1.
-  say("ready");
+  // "connecting", NOT "ready" — `ready` says "press the green button to listen", which is
+  // 8.7s of instruction to do the thing she has just done, and it was still playing when
+  // Rime began reading her loan. A prompt in the gesture is still required: mobile Safari
+  // spends the tap on the first await, so the element must start a real play() here or
+  // every later prompt is blocked.
+  say("connecting");
 
   // Trap 2: on plain http from a phone getUserMedia is denied with no dialog at all.
   if (!window.isSecureContext) {
@@ -507,7 +758,7 @@ $("#btn-take").addEventListener("click", async () => {
     return;
   }
 
-  const granted = await navigator.mediaDevices?.getUserMedia({ audio: true })
+  const granted = await navigator.mediaDevices?.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } })
     .then((s) => { s.getTracks().forEach((t) => t.stop()); return true; })
     .catch(() => false);
 
@@ -516,7 +767,7 @@ $("#btn-take").addEventListener("click", async () => {
 });
 
 $("#btn-mic").addEventListener("click", async () => {
-  const granted = await navigator.mediaDevices?.getUserMedia({ audio: true })
+  const granted = await navigator.mediaDevices?.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } })
     .then((s) => { s.getTracks().forEach((t) => t.stop()); return true; })
     .catch(() => false);
   if (!granted) { say("mic_denied"); return; }

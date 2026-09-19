@@ -27,6 +27,7 @@ Self-check:  uv run python -m kfs.build_clauses
 
 from __future__ import annotations
 
+import os
 from decimal import Decimal
 
 from delivery.normalizer.hindi import cardinal, digits, percent, rupees, tenure_months
@@ -73,18 +74,26 @@ PAYEE_HI = {"RE": "लोन कंपनी को", "third_party": "किस�
 
 
 def build_clauses(kfs: KFS) -> list[Clause]:
-    """The full read-aloud script for one KFS, in disclosure order."""
+    """The full read-aloud script for one KFS, in disclosure order.
+
+    ONE KEY VALUE PER CLAUSE, the same rule the module docstring states for segments and
+    for the same reason, one level up. A clause passes teach-back only when every value in
+    it was conveyed, so a clause carrying four charges asked her to recall four amounts in
+    one answer and failed all four when she missed one. `fees` and `emi` used to do exactly
+    that; they are split here instead.
+    """
     out = [
         _identity(kfs),
         _sanctioned(kfs),
         _tenure(kfs),
         _emi(kfs),
+        _emi_count(kfs),
         _interest_rate(kfs),
     ]
     if kfs.floating is not None:
-        out.append(_rate_reset(kfs))
+        out += _rate_reset(kfs)
+    out += _fees(kfs)
     out += [
-        _fees(kfs),
         _apr(kfs),
         _total_repayment(kfs),
         _prepayment(kfs),
@@ -96,14 +105,42 @@ def build_clauses(kfs: KFS) -> list[Clause]:
 # --- clauses -------------------------------------------------------------------------
 
 
+def skip_intro() -> bool:
+    """Whether to drop the greeting from the identity clause. Demo knob, off by default.
+
+    The first two segments of `identity` are a fixed greeting and an instruction to the
+    borrower. They carry no Annex-A value and no key value — 12.1 s of the clause's 22.2 s
+    on the demo document — and the account number does not begin until they are done. On a
+    9-minute stage slot that is most of the budget spent before anything is demonstrable.
+
+    Setting SAMJHA_SKIP_INTRO=1 drops exactly those two segments and nothing else. No
+    disclosure is lost: no Annex-A field, no key value, no number. What IS lost is the
+    borrower being told she may interrupt, which is why this is opt-in rather than a
+    default, and why the agent writes a `note` into the call's event log when it is on.
+
+    ponytail: an env var rather than a parameter, because it has to reach here through
+    agent/main.py, scripts/e2e.py and scripts/talk.py alike. Thread it as an argument if a
+    second caller ever needs a different answer in the same process.
+    """
+    return os.environ.get("SAMJHA_SKIP_INTRO") == "1"
+
+
+# Spoken once, at the top of the call. Neither carries a key value, which is what makes
+# them safe to drop — see skip_intro().
+def _intro_segments(kfs: KFS) -> list[Segment]:
+    return [
+        Segment(f"नमस्ते। यह आपके {_loan_type(kfs)} की ज़रूरी जानकारी है।"),
+        Segment("मैं एक-एक बात पढ़कर सुनाऊँगा। बीच में कभी भी रोक सकते हैं।"),
+    ]
+
+
 def _identity(kfs: KFS) -> Clause:
     acct = kfs.loan_account_no
     return Clause(
         id="identity",
         title_hi="लोन की पहचान",
         segments=[
-            Segment(f"नमस्ते। यह आपके {_loan_type(kfs)} की ज़रूरी जानकारी है।"),
-            Segment("मैं एक-एक बात पढ़कर सुनाऊँगा। बीच में कभी भी रोक सकते हैं।"),
+            *([] if skip_intro() else _intro_segments(kfs)),
             Segment(
                 f"आपका लोन खाता नंबर है, {digits(acct)}।",
                 # str, never int: the pilot's worst raw failure was a LOST LEADING ZERO
@@ -163,11 +200,22 @@ def _emi(kfs: KFS) -> Clause:
                 f"हर महीने की किस्त होगी, {rupees(epi)}।",
                 key_value=KeyValue("emi_amount", epi, f"₹{inr(epi)}", rupees(epi)),
             ),
+            Segment(f"पहली किस्त {start}।"),
+        ],
+    )
+
+
+def _emi_count(kfs: KFS) -> Clause:
+    """How many instalments. Split out of _emi — see build_clauses()'s one-value rule."""
+    n = kfs.instalments.number_of_epis
+    return Clause(
+        id="emi_count",
+        title_hi="कितनी किस्तें",
+        segments=[
             Segment(
                 f"कुल {cardinal(n)} किस्तें देनी होंगी।",
                 key_value=KeyValue("tenure_months", n, str(n), cardinal(n)),
             ),
-            Segment(f"पहली किस्त {start}।"),
         ],
     )
 
@@ -192,7 +240,7 @@ def _interest_rate(kfs: KFS) -> Clause:
     )
 
 
-def _rate_reset(kfs: KFS) -> Clause:
+def _rate_reset(kfs: KFS) -> list[Clause]:
     """Annex A row 10. The awkward clause, and the one a borrower most needs read aloud.
 
     The benchmark's own name (`floating.benchmark`, e.g. "Lender's 6-month MCLR") is NOT
@@ -200,54 +248,83 @@ def _rate_reset(kfs: KFS) -> Clause:
     2.1x longer and changed one numeral's value in the battery. The borrower gets the two
     things she can act on — the spread and the reset period — plus the two disclosed
     impacts of a 25 bps move.
+
+    Split one-value-per-clause for the same reason as _fees: this carried up to FOUR
+    values, so forgetting the last of them failed the other three with it.
     """
     f = kfs.floating
     assert f is not None
-    segs = [
-        Segment("आपकी ब्याज दर तय नहीं है। यह कंपनी की बेंचमार्क दर से जुड़ी है।"),
-        Segment(
-            f"उस दर के ऊपर, {percent(f.spread_pct)} और जोड़ा जाता है।",
-            key_value=KeyValue(
-                "percentage_apr", f.spread_pct, f"{f.spread_pct}%", percent(f.spread_pct)
+
+    out = [
+        Clause(id="rate_reset", title_hi="दर कैसे जुड़ी है", segments=[
+            Segment("आपकी ब्याज दर तय नहीं है। यह कंपनी की बेंचमार्क दर से जुड़ी है।"),
+            Segment(
+                f"उस दर के ऊपर, {percent(f.spread_pct)} और जोड़ा जाता है।",
+                key_value=KeyValue(
+                    "percentage_apr", f.spread_pct, f"{f.spread_pct}%", percent(f.spread_pct)
+                ),
             ),
-        ),
-        Segment(
-            f"हर {tenure_months(f.reset_periodicity_months, confirm=False)} में दर की समीक्षा होगी।",
-            key_value=KeyValue(
-                "tenure_months",
-                f.reset_periodicity_months,
-                f"{f.reset_periodicity_months} months",
-                tenure_months(f.reset_periodicity_months, confirm=False),
+        ]),
+        Clause(id="rate_reset_period", title_hi="दर कब बदलेगी", segments=[
+            Segment(
+                f"हर {tenure_months(f.reset_periodicity_months, confirm=False)} में दर की समीक्षा होगी।",
+                key_value=KeyValue(
+                    "tenure_months",
+                    f.reset_periodicity_months,
+                    f"{f.reset_periodicity_months} months",
+                    tenure_months(f.reset_periodicity_months, confirm=False),
+                ),
             ),
-        ),
+        ]),
     ]
     if f.impact_25bps_on_epi is not None:
         d = f.impact_25bps_on_epi
-        segs.append(
+        out.append(Clause(id="rate_reset_emi", title_hi="दर बढ़ी तो किस्त", segments=[
             Segment(
                 f"अगर दर पाव प्रतिशत बढ़ी, तो किस्त {rupees(d)} बढ़ जाएगी।",
                 key_value=KeyValue("emi_amount", d, f"₹{inr(d)}", rupees(d)),
-            )
-        )
+            ),
+        ]))
     if f.impact_25bps_on_num_epis is not None:
         n = f.impact_25bps_on_num_epis
-        segs.append(
+        out.append(Clause(id="rate_reset_term", title_hi="दर बढ़ी तो अवधि", segments=[
             Segment(
                 # Phrased in months, not instalments, so it stays grammatical at n = 1.
                 f"या किस्त उतनी ही रखकर, लोन {cardinal(n)} महीने और चलेगा।",
                 key_value=KeyValue("tenure_months", n, str(n), cardinal(n)),
-            )
-        )
-    return Clause(id="rate_reset", title_hi="दर बदलने का नियम", segments=segs)
+            ),
+        ]))
+    return out
 
 
-def _fees(kfs: KFS) -> Clause:
-    segs = [Segment("अब फीस और शुल्क। ये रकम लोन के अलावा है।")]
-    for fee in kfs.fees:
-        segs.append(_fee_segment(fee))
+def _fees(kfs: KFS) -> list[Clause]:
+    """ONE CLAUSE PER FEE LINE, not one clause carrying every fee.
+
+    Teach-back is graded per key value and a clause passes only when EVERY value in it was
+    conveyed. A single `fees` clause on a document with four charges therefore asked the
+    borrower to recall four separate amounts in one breath, and forgetting the last one
+    failed the whole clause — including the three she had just said correctly. She then had
+    to hear all four read out again.
+
+    That is not a teach-back failure, it is a memory test, and it is not what the FSM is
+    trying to measure. One value per clause means one thing to say, one verdict, and a
+    re-read that only repeats what she actually missed.
+    """
     if not kfs.fees:
-        segs.append(Segment("इस लोन पर कोई अलग फीस नहीं है।"))
-    return Clause(id="fees", title_hi="फीस और शुल्क", segments=segs)
+        return [Clause(id="fees", title_hi="फीस और शुल्क", segments=[
+            Segment("अब फीस और शुल्क। ये रकम लोन के अलावा है।"),
+            Segment("इस लोन पर कोई अलग फीस नहीं है।"),
+        ])]
+
+    out: list[Clause] = []
+    for i, fee in enumerate(kfs.fees, 1):
+        segs = []
+        if i == 1:
+            segs.append(Segment("अब फीस और शुल्क। ये रकम लोन के अलावा है।"))
+        segs.append(_fee_segment(fee))
+        out.append(Clause(id=f"fee_{i}", title_hi=FEE_ITEM_HI.get(fee.item, fee.item),
+                          segments=segs))
+    return out
 
 
 def _fee_segment(fee: FeeLine) -> Segment:

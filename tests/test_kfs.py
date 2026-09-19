@@ -455,3 +455,114 @@ def test_indian_grouping():
     assert inr(Decimal("500000")) == "5,00,000"
     assert inr(Decimal("850")) == "850"
     assert inr(Decimal("12494")) == "12,494"
+
+
+# --- SAMJHA_SKIP_INTRO ------------------------------------------------------------------
+#
+# A demo knob that drops spoken segments is one typo away from dropping a disclosure, so
+# what it must NOT touch is worth asserting rather than trusting.
+
+
+def _fixture_kfs():
+    from kfs.extract import extract
+    return extract(Path("fixtures/synthetic/pdf/kfs_01_two_wheeler.pdf"))
+
+
+def test_skip_intro_drops_only_the_greeting(monkeypatch):
+    import importlib
+
+    from kfs import build_clauses as B
+
+    kfs = _fixture_kfs()
+
+    monkeypatch.delenv("SAMJHA_SKIP_INTRO", raising=False)
+    importlib.reload(B)
+    full = B.build_clauses(kfs)
+
+    monkeypatch.setenv("SAMJHA_SKIP_INTRO", "1")
+    importlib.reload(B)
+    short = B.build_clauses(kfs)
+
+    try:
+        # Same clauses, same order. Only `identity` may differ at all.
+        assert [c.id for c in full] == [c.id for c in short]
+        for a, b in zip(full, short, strict=True):
+            if a.id != "identity":
+                assert [s.text for s in a.segments] == [s.text for s in b.segments]
+
+        # Exactly the two intro segments go, and they are the ones with no key value.
+        fi = next(c for c in full if c.id == "identity")
+        si = next(c for c in short if c.id == "identity")
+        assert len(fi.segments) - len(si.segments) == 2
+        dropped = fi.segments[:2]
+        assert all(s.key_value is None for s in dropped)
+        assert [s.text for s in si.segments] == [s.text for s in fi.segments[2:]]
+
+        # The thing the whole product rests on: every key value survives, in both arms.
+        def kvs(cl):
+            return [(s.key_value.kind, s.key_value.raw_text)
+                    for c in cl for s in c.segments if s.key_value is not None]
+
+        assert kvs(full) == kvs(short)
+        assert any(k == "account_identifier" for k, _ in kvs(short))
+    finally:
+        monkeypatch.delenv("SAMJHA_SKIP_INTRO", raising=False)
+        importlib.reload(B)
+
+
+def test_skip_intro_is_off_unless_set_to_exactly_1(monkeypatch):
+    """A half-set flag must read as OFF. Fail safe means reading MORE, not less."""
+    import importlib
+
+    from kfs import build_clauses as B
+
+    try:
+        for value in ("", "0", "true", "yes", "TRUE", "2"):
+            monkeypatch.setenv("SAMJHA_SKIP_INTRO", value)
+            importlib.reload(B)
+            assert not B.skip_intro(), f"{value!r} must not enable skip-intro"
+    finally:
+        monkeypatch.delenv("SAMJHA_SKIP_INTRO", raising=False)
+        importlib.reload(B)
+
+
+def test_every_clause_carries_at_most_one_key_value():
+    """One value per clause, across every fixture and both formats.
+
+    Teach-back grades per key value and a clause passes only when EVERY value in it was
+    conveyed. A clause carrying four charges therefore asked the borrower to recall four
+    amounts in one answer and failed all four when she missed the last — a memory test,
+    not a comprehension test. `fees`, `emi` and `rate_reset` all used to do this.
+    """
+    from kfs.build_clauses import build_clauses
+    from kfs.extract import extract
+
+    offenders = []
+    docs = sorted(Path("fixtures/synthetic/pdf").glob("*.pdf"))
+    assert docs, "no fixtures found"
+    for doc in docs:
+        for c in build_clauses(extract(doc)):
+            if len(c.key_values) > 1:
+                offenders.append(f"{doc.name}:{c.id} has {len(c.key_values)}")
+    assert not offenders, "clauses asking for more than one value:\n  " + "\n  ".join(offenders)
+
+
+def test_splitting_lost_no_disclosed_value():
+    """Every value the old grouping disclosed must still be disclosed somewhere."""
+    from kfs.build_clauses import build_clauses
+    from kfs.extract import extract
+
+    for doc in sorted(Path("fixtures/synthetic/pdf").glob("*.pdf")):
+        kfs = extract(doc)
+        clauses = build_clauses(kfs)
+        spoken = {(kv.kind, kv.raw_text) for c in clauses for kv in c.key_values}
+
+        # every fee line still reaches her
+        for fee in kfs.fees:
+            if fee.amount_inr is not None:
+                assert any(str(fee.amount_inr).rstrip("0").rstrip(".") in raw.replace(",", "")
+                           for _, raw in spoken), f"{doc.name}: fee {fee.item} vanished"
+        # and the instalment count, which used to ride along inside `emi`
+        assert any(raw == str(kfs.instalments.number_of_epis) for _, raw in spoken), (
+            f"{doc.name}: number_of_epis is no longer disclosed"
+        )

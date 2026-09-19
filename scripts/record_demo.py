@@ -63,8 +63,13 @@ CHROME_ARGS = [
     "--disable-features=IsolateOrigins,site-per-process",
 ]
 
-CLAUSE_ORDER = ("identity", "sanctioned", "tenure", "emi", "interest_rate", "rate_reset",
-                "fees", "apr", "total_repayment", "prepayment", "grievance")
+# Fees are now one clause per line (fee_1, fee_2, ...) and emi/rate_reset are split, so a
+# literal list cannot name them all. Order comes from build_clauses(); this is only the
+# prefix ordering used for display.
+CLAUSE_ORDER = ("identity", "sanctioned", "tenure", "emi", "emi_count", "interest_rate",
+                "rate_reset", "rate_reset_period", "rate_reset_emi", "rate_reset_term",
+                "fees", "fee_1", "fee_2", "fee_3", "fee_4", "fee_5",
+                "apr", "total_repayment", "prepayment", "grievance")
 
 
 def log(msg: str) -> None:

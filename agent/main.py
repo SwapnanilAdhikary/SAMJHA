@@ -48,9 +48,12 @@ from agent.session import (
     build_session,
     new_fsm,
     run_consent_flow,
+    say_narrowband,
+    wire_touch_barge_in,
     wire_transcripts,
 )
 from api import events
+from kfs import build_clauses as build_clauses_mod
 from kfs.build_clauses import build_clauses
 from kfs.clauses import Clause
 from kfs.schema import KFS
@@ -224,6 +227,18 @@ async def entrypoint(ctx: JobContext) -> None:
                  + ").",
         )
 
+    # A call that skipped the greeting must say so where the call's own history is read,
+    # not only in whoever's shell exported the variable. No Annex-A value is affected —
+    # see kfs.build_clauses.skip_intro — but "she was never told she could interrupt" is
+    # exactly the kind of thing a dispute turns on.
+    if build_clauses_mod.skip_intro():
+        events.emit(
+            call_id, "note",
+            text="SAMJHA_SKIP_INTRO=1 — the greeting and the 'you may interrupt me' "
+                 "instruction were NOT read. The account number began this call. No "
+                 "Annex-A field and no key value was skipped.",
+        )
+
     # Register the clauses with their Hindi titles, durations and key values BEFORE
     # delivery. Without this the panel has only what agent/consent_fsm.py writes, which
     # carries no `title_hi` at all (api/events.py:211), so the whole KFS renders as bare
@@ -243,19 +258,42 @@ async def entrypoint(ctx: JobContext) -> None:
     try:
         await session.start(ConsentAgent(), room=ctx.room)
         ledger.attach(session.output.audio)
+        logger.info("ledger attached to %r (audio_enabled=%s)",
+                    type(session.output.audio).__name__, session.output.audio_enabled)
 
-        decision = await run_consent_flow(session, fsm, clauses, pool, ledger, answers)
+        wire_touch_barge_in(ctx.room, session)
+
+        try:
+            decision = await run_consent_flow(session, fsm, clauses, pool, ledger, answers)
+        except RuntimeError as e:
+            # She hung up mid-clause. LiveKit tears the session down underneath us and the
+            # next say() raises "AgentSession isn't running" — which used to crash the job
+            # with a traceback AFTER clauses had been read, so the call ended with no
+            # decision recorded at all. A borrower who hangs up has not consented; say so
+            # and seal it, rather than losing the call.
+            if "AgentSession" not in str(e):
+                raise
+            logger.info("borrower left mid-call (%s); recording no consent", e)
+            events.emit(call_id, "note",
+                        text="The borrower disconnected before the call finished. No "
+                             "consent was taken. Clause states up to that point stand.")
+            events.emit(call_id, "consent", decision="REFUSED",
+                        reason="borrower_disconnected_before_consent",
+                        flagged_for_callback=True)
+            decision = None
 
         if decision is None:
             logger.info("call ended with no consent utterance", extra={"call_id": call_id})
         elif decision.granted:
-            await session.say("धन्यवाद। आपकी सहमति दर्ज कर ली गई है।").wait_for_playout()
+            await say_narrowband(session, pool, "धन्यवाद। आपकी सहमति दर्ज कर ली गई है।",
+                                 call_id=call_id)
         else:
             # The refusal is already in events/{call_id}.jsonl. Say so out loud too: a
             # borrower who is refused deserves to hear why, not just be hung up on.
-            await session.say(
-                "अभी सहमति दर्ज नहीं की जा सकती। हमारा प्रतिनिधि आपको फिर से कॉल करेगा।"
-            ).wait_for_playout()
+            await say_narrowband(
+                session, pool,
+                "अभी सहमति दर्ज नहीं की जा सकती। हमारा प्रतिनिधि आपको फिर से कॉल करेगा।",
+                call_id=call_id)
             logger.info("consent refused: %s", decision.reasons, extra={"call_id": call_id})
     finally:
         await pool.aclose()
